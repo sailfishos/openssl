@@ -1,3 +1,6 @@
+* Thu Feb 11 2016 Niels Breet <niels.breet@jolla.com> - 1.0.2f
+- Upgrade to 1.0.2f. Fixes MER#1503
+
 * Tue Aug 25 2015 Pasi Sjöholm <pasi.sjoholm@jollamobile.com> - 1.0.2d-5
 - Disable SSLv3 per default. MER#1266
 
