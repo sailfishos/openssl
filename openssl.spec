@@ -35,7 +35,7 @@ Source13: ectest.c
 Source14: fixpatch
 Source15: openssl-fips.conf
 # Build changes
-Patch1: openssl-1.0.2c-rpmbuild.patch
+Patch1: openssl-1.0.2e-rpmbuild.patch
 Patch2: openssl-1.0.2a-defaults.patch
 Patch4: openssl-1.0.2a-enginesdir.patch
 Patch5: openssl-1.0.2a-no-rpath.patch
@@ -51,7 +51,7 @@ Patch33: openssl-1.0.0-beta4-ca-dir.patch
 Patch34: openssl-1.0.2a-x509.patch
 Patch35: openssl-1.0.2a-version-add-engines.patch
 Patch39: openssl-1.0.2a-ipv6-apps.patch
-Patch40: openssl-1.0.2c-fips.patch
+Patch40: openssl-1.0.2e-fips.patch
 Patch45: openssl-1.0.2a-env-zlib.patch
 Patch47: openssl-1.0.2a-readme-warning.patch
 Patch49: openssl-1.0.1i-algo-doc.patch
@@ -70,14 +70,17 @@ Patch72: openssl-1.0.2a-fips-ctor.patch
 Patch73: openssl-1.0.2c-ecc-suiteb.patch
 Patch74: openssl-1.0.2a-no-md5-verify.patch
 Patch75: openssl-1.0.2a-compat-symbols.patch
-Patch76: openssl-1.0.2a-new-fips-reqs.patch
+Patch76: openssl-1.0.2f-new-fips-reqs.patch
 Patch77: openssl-1.0.2a-weak-ciphers.patch
 Patch78: openssl-1.0.2a-cc-reqs.patch
 Patch90: openssl-1.0.2a-enc-fail.patch
 Patch92: openssl-1.0.2a-system-cipherlist.patch
 Patch93: openssl-1.0.2a-disable-sslv2v3.patch
+Patch94: openssl-1.0.2d-secp256k1.patch
+Patch95: openssl-1.0.2e-remove-nistp224.patch
+Patch96: openssl-1.0.2e-speed-doc.patch
 # Backported fixes including security fixes
-Patch80: openssl-1.0.2a-wrap-pad.patch
+Patch80: openssl-1.0.2e-wrap-pad.patch
 Patch81: openssl-1.0.2a-padlock64.patch
 Patch82: openssl-1.0.2c-trusted-first-doc.patch
 # Mer patches
@@ -108,6 +111,8 @@ Group: System Environment/Libraries
 Requires: ca-certificates >= 2008-5
 # Needed obsoletes due to the base/lib subpackage split
 Obsoletes: openssl < 1.0.1b
+Obsoletes: openssl-fips < 1:1.0.1e-28
+Provides: openssl-fips = %{epoch}:%{version}-%{release}
 
 %description libs
 OpenSSL is a toolkit for supporting cryptography. The openssl-libs
@@ -198,6 +203,9 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch90 -p1 -b .enc-fail
 %patch92 -p1 -b .system
 %patch93 -p1 -b .v2v3
+%patch94 -p1 -b .secp256k1
+%patch95 -p1 -b .nistp224
+%patch96 -p1 -b .speed-doc
 
 %patch80 -p1 -b .wrap
 %patch81 -p1 -b .padlock64
@@ -279,6 +287,11 @@ make rehash
 
 # Overwrite FIPS README
 cp -f %{SOURCE11} .
+
+# Clean up the .pc files
+for i in libcrypto.pc libssl.pc openssl.pc ; do
+  sed -i '/^Libs.private:/{s/-L[^ ]* //;s/-Wl[^ ]* //}' $i
+done
 
 %check
 # Verify that what was compiled actually works.
