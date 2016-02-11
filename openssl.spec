@@ -428,7 +428,8 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %defattr(-,root,root)
 %doc FAQ LICENSE CHANGES NEWS INSTALL README
 %doc doc/c-indentation.el doc/openssl.txt
-%doc doc/openssl_button.html doc/openssl_button.gif
+# these files got remove - xfade
+# %doc doc/openssl_button.html doc/openssl_button.gif
 %doc doc/ssleay.txt
 %doc README.FIPS
 %{_sysconfdir}/pki/tls/certs/make-dummy-cert
