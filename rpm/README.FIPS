@@ -6,17 +6,17 @@ Red Hat Enterprise Linux - OPENSSL Module.
 
 The module files
 ================
-/usr/lib[64]/libcrypto.so.1.0.1e
-/usr/lib[64]/libssl.so.1.0.1e
-/usr/lib[64]/.libcrypto.so.1.0.1e.hmac
-/usr/lib[64]/.libssl.so.1.0.1e.hmac
+/usr/lib[64]/libcrypto.so.1.1.0
+/usr/lib[64]/libssl.so.1.1.0
+/usr/lib[64]/.libcrypto.so.1.1.0.hmac
+/usr/lib[64]/.libssl.so.1.1.0.hmac
 
 Dependencies
 ============
 
 The approved mode of operation requires kernel with /dev/urandom RNG running
 with properties as defined in the security policy of the module. This is
-provided by kernel packages with validated Red Hat Enterprise Linux - IPSec
+provided by kernel packages with validated Red Hat Enterprise Linux Kernel
 Crytographic Module.
 
 Installation
@@ -26,11 +26,8 @@ The RPM package of the module can be installed by standard tools recommended
 for installation of RPM packages on the Red Hat Enterprise Linux system (yum,
 rpm, RHN remote management tool).
 
-For proper operation of the in-module integrity verification the prelink has to
-be disabled. This can be done with setting PRELINKING=no in the
-/etc/sysconfig/prelink configuration file. If the libraries were already
-prelinked the prelink should be undone on all the system files with the
-'prelink -u -a' command.
+The RPM package dracut-fips must be installed for the approved mode of
+operation.
 
 Usage and API
 =============

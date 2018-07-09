@@ -13,6 +13,14 @@
 #include "opensslconf-i386.h"
 #elif defined(__ia64__)
 #include "opensslconf-ia64.h"
+#elif defined(__mips64) && defined(__MIPSEL__)
+#include "opensslconf-mips64el.h"
+#elif defined(__mips64)
+#include "opensslconf-mips64.h"
+#elif defined(__mips) && defined(__MIPSEL__)
+#include "opensslconf-mipsel.h"
+#elif defined(__mips)
+#include "opensslconf-mips.h"
 #elif defined(__powerpc64__)
 #include <endian.h>
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__

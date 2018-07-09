@@ -1,0 +1,20 @@
+Index: openssl-1.0.2d/crypto/cversion.c
+===================================================================
+--- openssl-1.0.2d.orig/crypto/cversion.c
++++ openssl-1.0.2d/crypto/cversion.c
+@@ -23,15 +23,7 @@ const char *_current_SSLeay_version(int
+     if (t == OPENSSL_VERSION)
+         return OPENSSL_VERSION_TEXT;
+     if (t == OPENSSL_BUILT_ON) {
+-#ifdef DATE
+-# ifdef OPENSSL_USE_BUILD_DATE
+-        return (DATE);
+-# else
+-        return ("built on: reproducible build, date unspecified");
+-# endif
+-#else
+         return ("built on: date not available");
+-#endif
+     }
+     if (t == OPENSSL_CFLAGS) {
+ #ifdef CFLAGS

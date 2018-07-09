@@ -1,60 +1,12 @@
-/* crypto/ec/ectest.c */
 /*
- * Originally written by Bodo Moeller for the OpenSSL project.
+ * Copyright 2001-2016 The OpenSSL Project Authors. All Rights Reserved.
+ *
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
  */
-/* ====================================================================
- * Copyright (c) 1998-2001 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
+
 /* ====================================================================
  * Copyright 2002 Sun Microsystems, Inc. ALL RIGHTS RESERVED.
  *
@@ -114,103 +66,14 @@ int main(int argc, char *argv[])
 # define TIMING_RAND_PT 1
 # define TIMING_SIMUL 2
 
-# if 0
-static void timings(EC_GROUP *group, int type, BN_CTX *ctx)
-{
-    clock_t clck;
-    int i, j;
-    BIGNUM *s;
-    BIGNUM *r[10], *r0[10];
-    EC_POINT *P;
-
-    s = BN_new();
-    if (s == NULL)
-        ABORT;
-
-    fprintf(stdout, "Timings for %d-bit field, ", EC_GROUP_get_degree(group));
-    if (!EC_GROUP_get_order(group, s, ctx))
-        ABORT;
-    fprintf(stdout, "%d-bit scalars ", (int)BN_num_bits(s));
-    fflush(stdout);
-
-    P = EC_POINT_new(group);
-    if (P == NULL)
-        ABORT;
-    EC_POINT_copy(P, EC_GROUP_get0_generator(group));
-
-    for (i = 0; i < 10; i++) {
-        if ((r[i] = BN_new()) == NULL)
-            ABORT;
-        if (!BN_pseudo_rand(r[i], BN_num_bits(s), 0, 0))
-            ABORT;
-        if (type != TIMING_BASE_PT) {
-            if ((r0[i] = BN_new()) == NULL)
-                ABORT;
-            if (!BN_pseudo_rand(r0[i], BN_num_bits(s), 0, 0))
-                ABORT;
-        }
-    }
-
-    clck = clock();
-    for (i = 0; i < 10; i++) {
-        for (j = 0; j < 10; j++) {
-            if (!EC_POINT_mul
-                (group, P, (type != TIMING_RAND_PT) ? r[i] : NULL,
-                 (type != TIMING_BASE_PT) ? P : NULL,
-                 (type != TIMING_BASE_PT) ? r0[i] : NULL, ctx))
-                ABORT;
-        }
-    }
-    clck = clock() - clck;
-
-    fprintf(stdout, "\n");
-
-#  ifdef CLOCKS_PER_SEC
-    /*
-     * "To determine the time in seconds, the value returned by the clock
-     * function should be divided by the value of the macro CLOCKS_PER_SEC."
-     * -- ISO/IEC 9899
-     */
-#   define UNIT "s"
-#  else
-    /*
-     * "`CLOCKS_PER_SEC' undeclared (first use this function)" -- cc on
-     * NeXTstep/OpenStep
-     */
-#   define UNIT "units"
-#   define CLOCKS_PER_SEC 1
-#  endif
-
-    if (type == TIMING_BASE_PT) {
-        fprintf(stdout, "%i %s in %.2f " UNIT "\n", i * j,
-                "base point multiplications", (double)clck / CLOCKS_PER_SEC);
-    } else if (type == TIMING_RAND_PT) {
-        fprintf(stdout, "%i %s in %.2f " UNIT "\n", i * j,
-                "random point multiplications",
-                (double)clck / CLOCKS_PER_SEC);
-    } else if (type == TIMING_SIMUL) {
-        fprintf(stdout, "%i %s in %.2f " UNIT "\n", i * j,
-                "s*P+t*Q operations", (double)clck / CLOCKS_PER_SEC);
-    }
-    fprintf(stdout, "average: %.4f " UNIT "\n",
-            (double)clck / (CLOCKS_PER_SEC * i * j));
-
-    EC_POINT_free(P);
-    BN_free(s);
-    for (i = 0; i < 10; i++) {
-        BN_free(r[i]);
-        if (type != TIMING_BASE_PT)
-            BN_free(r0[i]);
-    }
-}
-# endif
-
 /* test multiplication with group order, long and negative scalars */
 static void group_order_tests(EC_GROUP *group)
 {
     BIGNUM *n1, *n2, *order;
     EC_POINT *P = EC_POINT_new(group);
     EC_POINT *Q = EC_POINT_new(group);
+    EC_POINT *R = EC_POINT_new(group);
+    EC_POINT *S = EC_POINT_new(group);
     BN_CTX *ctx = BN_CTX_new();
     int i;
 
@@ -290,6 +153,17 @@ static void group_order_tests(EC_GROUP *group)
         /* Exercise EC_POINTs_mul, including corner cases. */
         if (EC_POINT_is_at_infinity(group, P))
             ABORT;
+
+        scalars[0] = scalars[1] = BN_value_one();
+        points[0]  = points[1]  = P;
+
+        if (!EC_POINTs_mul(group, R, NULL, 2, points, scalars, ctx))
+            ABORT;
+        if (!EC_POINT_dbl(group, S, points[0], ctx))
+            ABORT;
+        if (0 != EC_POINT_cmp(group, R, S, ctx))
+            ABORT;
+
         scalars[0] = n1;
         points[0] = Q;          /* => infinity */
         scalars[1] = n2;
@@ -311,6 +185,8 @@ static void group_order_tests(EC_GROUP *group)
 
     EC_POINT_free(P);
     EC_POINT_free(Q);
+    EC_POINT_free(R);
+    EC_POINT_free(S);
     BN_free(n1);
     BN_free(n2);
     BN_free(order);
@@ -325,16 +201,14 @@ static void prime_field_tests(void)
     EC_GROUP *P_160 = NULL, *P_192 = NULL, *P_224 = NULL, *P_256 =
         NULL, *P_384 = NULL, *P_521 = NULL;
     EC_POINT *P, *Q, *R;
-    BIGNUM *x, *y, *z;
+    BIGNUM *x, *y, *z, *yplusone;
     unsigned char buf[100];
     size_t i, len;
     int k;
 
-# if 1                          /* optional */
     ctx = BN_CTX_new();
     if (!ctx)
         ABORT;
-# endif
 
     p = BN_new();
     a = BN_new();
@@ -358,7 +232,72 @@ static void prime_field_tests(void)
     x = BN_new();
     y = BN_new();
     z = BN_new();
-    if (!x || !y || !z)
+    yplusone = BN_new();
+    if (x == NULL || y == NULL || z == NULL || yplusone == NULL)
+        ABORT;
+
+    /* Curve P-224 (FIPS PUB 186-2, App. 6) */
+
+    if (!BN_hex2bn
+        (&p, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000001"))
+        ABORT;
+    if (1 != BN_is_prime_ex(p, BN_prime_checks, ctx, NULL))
+        ABORT;
+    if (!BN_hex2bn
+        (&a, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFE"))
+        ABORT;
+    if (!BN_hex2bn
+        (&b, "B4050A850C04B3ABF54132565044B0B7D7BFD8BA270B39432355FFB4"))
+        ABORT;
+    if (!EC_GROUP_set_curve_GFp(group, p, a, b, ctx))
+        ABORT;
+
+    if (!BN_hex2bn
+        (&x, "B70E0CBD6BB4BF7F321390B94A03C1D356C21122343280D6115C1D21"))
+        ABORT;
+    if (!EC_POINT_set_compressed_coordinates_GFp(group, P, x, 0, ctx))
+        ABORT;
+    if (EC_POINT_is_on_curve(group, P, ctx) <= 0)
+        ABORT;
+    if (!BN_hex2bn
+        (&z, "FFFFFFFFFFFFFFFFFFFFFFFFFFFF16A2E0B8F03E13DD29455C5C2A3D"))
+        ABORT;
+    if (!EC_GROUP_set_generator(group, P, z, BN_value_one()))
+        ABORT;
+
+    if (!EC_POINT_get_affine_coordinates_GFp(group, P, x, y, ctx))
+        ABORT;
+    fprintf(stdout, "\nNIST curve P-224 -- Generator:\n     x = 0x");
+    BN_print_fp(stdout, x);
+    fprintf(stdout, "\n     y = 0x");
+    BN_print_fp(stdout, y);
+    fprintf(stdout, "\n");
+    /* G_y value taken from the standard: */
+    if (!BN_hex2bn
+        (&z, "BD376388B5F723FB4C22DFE6CD4375A05A07476444D5819985007E34"))
+        ABORT;
+    if (0 != BN_cmp(y, z))
+        ABORT;
+
+    if (!BN_add(yplusone, y, BN_value_one()))
+        ABORT;
+    /*
+     * When (x, y) is on the curve, (x, y + 1) is, as it happens, not,
+     * and therefore setting the coordinates should fail.
+     */
+    if (EC_POINT_set_affine_coordinates_GFp(group, P, x, yplusone, ctx))
+        ABORT;
+
+    fprintf(stdout, "verify degree ...");
+    if (EC_GROUP_get_degree(group) != 224)
+        ABORT;
+    fprintf(stdout, " ok\n");
+
+    group_order_tests(group);
+
+    if ((P_224 = EC_GROUP_new(EC_GROUP_method_of(group))) == NULL)
+        ABORT;
+    if (!EC_GROUP_copy(P_224, group))
         ABORT;
 
     /* Curve P-256 (FIPS PUB 186-2, App. 6) */
@@ -409,6 +348,15 @@ static void prime_field_tests(void)
     if (0 != BN_cmp(y, z))
         ABORT;
 
+    if (!BN_add(yplusone, y, BN_value_one()))
+        ABORT;
+    /*
+     * When (x, y) is on the curve, (x, y + 1) is, as it happens, not,
+     * and therefore setting the coordinates should fail.
+     */
+    if (EC_POINT_set_affine_coordinates_GFp(group, P, x, yplusone, ctx))
+        ABORT;
+
     fprintf(stdout, "verify degree ...");
     if (EC_GROUP_get_degree(group) != 256)
         ABORT;
@@ -416,7 +364,7 @@ static void prime_field_tests(void)
 
     group_order_tests(group);
 
-    if (!(P_256 = EC_GROUP_new(EC_GROUP_method_of(group))))
+    if ((P_256 = EC_GROUP_new(EC_GROUP_method_of(group))) == NULL)
         ABORT;
     if (!EC_GROUP_copy(P_256, group))
         ABORT;
@@ -464,6 +412,15 @@ static void prime_field_tests(void)
     if (0 != BN_cmp(y, z))
         ABORT;
 
+    if (!BN_add(yplusone, y, BN_value_one()))
+        ABORT;
+    /*
+     * When (x, y) is on the curve, (x, y + 1) is, as it happens, not,
+     * and therefore setting the coordinates should fail.
+     */
+    if (EC_POINT_set_affine_coordinates_GFp(group, P, x, yplusone, ctx))
+        ABORT;
+
     fprintf(stdout, "verify degree ...");
     if (EC_GROUP_get_degree(group) != 384)
         ABORT;
@@ -471,7 +428,7 @@ static void prime_field_tests(void)
 
     group_order_tests(group);
 
-    if (!(P_384 = EC_GROUP_new(EC_GROUP_method_of(group))))
+    if ((P_384 = EC_GROUP_new(EC_GROUP_method_of(group))) == NULL)
         ABORT;
     if (!EC_GROUP_copy(P_384, group))
         ABORT;
@@ -525,6 +482,15 @@ static void prime_field_tests(void)
     if (0 != BN_cmp(y, z))
         ABORT;
 
+    if (!BN_add(yplusone, y, BN_value_one()))
+        ABORT;
+    /*
+     * When (x, y) is on the curve, (x, y + 1) is, as it happens, not,
+     * and therefore setting the coordinates should fail.
+     */
+    if (EC_POINT_set_affine_coordinates_GFp(group, P, x, yplusone, ctx))
+        ABORT;
+
     fprintf(stdout, "verify degree ...");
     if (EC_GROUP_get_degree(group) != 521)
         ABORT;
@@ -532,12 +498,16 @@ static void prime_field_tests(void)
 
     group_order_tests(group);
 
-    if (!(P_521 = EC_GROUP_new(EC_GROUP_method_of(group))))
+    if ((P_521 = EC_GROUP_new(EC_GROUP_method_of(group))) == NULL)
         ABORT;
     if (!EC_GROUP_copy(P_521, group))
         ABORT;
 
     /* more tests using the last curve */
+
+    /* Restore the point that got mangled in the (x, y + 1) test. */
+    if (!EC_POINT_set_affine_coordinates_GFp(group, P, x, y, ctx))
+        ABORT;
 
     if (!EC_POINT_copy(Q, P))
         ABORT;
@@ -560,7 +530,7 @@ static void prime_field_tests(void)
     {
         const EC_POINT *points[4];
         const BIGNUM *scalars[4];
-        BIGNUM scalar3;
+        BIGNUM *scalar3;
 
         if (EC_POINT_is_at_infinity(group, Q))
             ABORT;
@@ -621,9 +591,11 @@ static void prime_field_tests(void)
         scalars[1] = y;
         scalars[2] = z;         /* z = -(x+y) */
 
-        BN_init(&scalar3);
-        BN_zero(&scalar3);
-        scalars[3] = &scalar3;
+        scalar3 = BN_new();
+        if (!scalar3)
+            ABORT;
+        BN_zero(scalar3);
+        scalars[3] = scalar3;
 
         if (!EC_POINTs_mul(group, P, NULL, 4, points, scalars, ctx))
             ABORT;
@@ -632,23 +604,10 @@ static void prime_field_tests(void)
 
         fprintf(stdout, " ok\n\n");
 
-        BN_free(&scalar3);
+        BN_free(scalar3);
     }
 
-# if 0
-    timings(P_256, TIMING_BASE_PT, ctx);
-    timings(P_256, TIMING_RAND_PT, ctx);
-    timings(P_256, TIMING_SIMUL, ctx);
-    timings(P_384, TIMING_BASE_PT, ctx);
-    timings(P_384, TIMING_RAND_PT, ctx);
-    timings(P_384, TIMING_SIMUL, ctx);
-    timings(P_521, TIMING_BASE_PT, ctx);
-    timings(P_521, TIMING_RAND_PT, ctx);
-    timings(P_521, TIMING_SIMUL, ctx);
-# endif
-
-    if (ctx)
-        BN_CTX_free(ctx);
+    BN_CTX_free(ctx);
     BN_free(p);
     BN_free(a);
     BN_free(b);
@@ -659,22 +618,14 @@ static void prime_field_tests(void)
     BN_free(x);
     BN_free(y);
     BN_free(z);
+    BN_free(yplusone);
 
-    if (P_160)
-        EC_GROUP_free(P_160);
-    if (P_192)
-        EC_GROUP_free(P_192);
-    if (P_224)
-        EC_GROUP_free(P_224);
-    if (P_256)
-        EC_GROUP_free(P_256);
-    if (P_384)
-        EC_GROUP_free(P_384);
-    if (P_521)
-        EC_GROUP_free(P_521);
+    EC_GROUP_free(P_224);
+    EC_GROUP_free(P_256);
+    EC_GROUP_free(P_384);
+    EC_GROUP_free(P_521);
 
 }
-
 
 static void internal_curve_test(void)
 {
@@ -683,9 +634,7 @@ static void internal_curve_test(void)
     int ok = 1;
 
     crv_len = EC_get_builtin_curves(NULL, 0);
-
-    curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * crv_len);
-
+    curves = OPENSSL_malloc(sizeof(*curves) * crv_len);
     if (curves == NULL)
         return;
 
@@ -724,6 +673,26 @@ static void internal_curve_test(void)
         fprintf(stdout, " failed\n\n");
         ABORT;
     }
+
+    /* Test all built-in curves and let the library choose the EC_METHOD */
+    for (n = 0; n < crv_len; n++) {
+        EC_GROUP *group = NULL;
+        int nid = curves[n].nid;
+        /*
+         * Skip for X25519 because low level operations such as EC_POINT_mul()
+         * are not supported for this curve
+         */
+        if (nid == NID_X25519)
+            continue;
+        fprintf(stdout, "%s:\n", OBJ_nid2sn(nid));
+        fflush(stdout);
+        if ((group = EC_GROUP_new_by_curve_name(nid)) == NULL) {
+            ABORT;
+        }
+        group_order_tests(group);
+        EC_GROUP_free(group);
+    }
+
     OPENSSL_free(curves);
     return;
 }
@@ -796,7 +765,7 @@ static const struct nistp_test_params nistp_tests_params[] = {
 static void nistp_single_test(const struct nistp_test_params *test)
 {
     BN_CTX *ctx;
-    BIGNUM *p, *a, *b, *x, *y, *n, *m, *order;
+    BIGNUM *p, *a, *b, *x, *y, *n, *m, *order, *yplusone;
     EC_GROUP *NISTP;
     EC_POINT *G, *P, *Q, *Q_CHECK;
 
@@ -811,6 +780,7 @@ static void nistp_single_test(const struct nistp_test_params *test)
     m = BN_new();
     n = BN_new();
     order = BN_new();
+    yplusone = BN_new();
 
     NISTP = EC_GROUP_new(test->meth());
     if (!NISTP)
@@ -832,6 +802,14 @@ static void nistp_single_test(const struct nistp_test_params *test)
     if (!BN_hex2bn(&x, test->Qx))
         ABORT;
     if (!BN_hex2bn(&y, test->Qy))
+        ABORT;
+    if (!BN_add(yplusone, y, BN_value_one()))
+        ABORT;
+    /*
+     * When (x, y) is on the curve, (x, y + 1) is, as it happens, not,
+     * and therefore setting the coordinates should fail.
+     */
+    if (EC_POINT_set_affine_coordinates_GFp(NISTP, Q_CHECK, x, yplusone, ctx))
         ABORT;
     if (!EC_POINT_set_affine_coordinates_GFp(NISTP, Q_CHECK, x, y, ctx))
         ABORT;
@@ -918,10 +896,6 @@ static void nistp_single_test(const struct nistp_test_params *test)
 
     fprintf(stdout, "ok\n");
     group_order_tests(NISTP);
-#  if 0
-    timings(NISTP, TIMING_BASE_PT, ctx);
-    timings(NISTP, TIMING_RAND_PT, ctx);
-#  endif
     EC_GROUP_free(NISTP);
     EC_POINT_free(G);
     EC_POINT_free(P);
@@ -935,6 +909,7 @@ static void nistp_single_test(const struct nistp_test_params *test)
     BN_free(x);
     BN_free(y);
     BN_free(order);
+    BN_free(yplusone);
     BN_CTX_free(ctx);
 }
 
@@ -942,33 +917,52 @@ static void nistp_tests()
 {
     unsigned i;
 
-    for (i = 0;
-         i < sizeof(nistp_tests_params) / sizeof(struct nistp_test_params);
-         i++) {
+    for (i = 0; i < OSSL_NELEM(nistp_tests_params); i++) {
         nistp_single_test(&nistp_tests_params[i]);
     }
 }
 # endif
+
+static void parameter_test(void)
+{
+    EC_GROUP *group, *group2;
+    ECPARAMETERS *ecparameters;
+
+    fprintf(stderr, "\ntesting ecparameters conversion ...");
+
+    group = EC_GROUP_new_by_curve_name(NID_secp384r1);
+    if (!group)
+        ABORT;
+
+    ecparameters = EC_GROUP_get_ecparameters(group, NULL);
+    if (!ecparameters)
+        ABORT;
+    group2 = EC_GROUP_new_from_ecparameters(ecparameters);
+    if (!group2)
+        ABORT;
+    if (EC_GROUP_cmp(group, group2, NULL))
+        ABORT;
+
+    fprintf(stderr, " ok\n");
+
+    EC_GROUP_free(group);
+    EC_GROUP_free(group2);
+    ECPARAMETERS_free(ecparameters);
+}
 
 static const char rnd_seed[] =
     "string to make the random number generator think it has entropy";
 
 int main(int argc, char *argv[])
 {
+    char *p;
 
-    /* enable memory leak checking unless explicitly disabled */
-    if (!((getenv("OPENSSL_DEBUG_MEMORY") != NULL)
-          && (0 == strcmp(getenv("OPENSSL_DEBUG_MEMORY"), "off")))) {
-        CRYPTO_malloc_debug_init();
-        CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
-    } else {
-        /* OPENSSL_DEBUG_MEMORY=off */
-        CRYPTO_set_mem_debug_functions(0, 0, 0, 0, 0);
-    }
+    p = getenv("OPENSSL_DEBUG_MEMORY");
+    if (p != NULL && strcmp(p, "on") == 0)
+        CRYPTO_set_mem_debug(1);
     CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-    ERR_load_crypto_strings();
 
-    RAND_seed(rnd_seed, sizeof rnd_seed); /* or BN_generate_prime may fail */
+    RAND_seed(rnd_seed, sizeof(rnd_seed)); /* or BN_generate_prime may fail */
 
     prime_field_tests();
     puts("");
@@ -981,13 +975,12 @@ int main(int argc, char *argv[])
     /* test the internal curves */
     internal_curve_test();
 
-# ifndef OPENSSL_NO_ENGINE
-    ENGINE_cleanup();
-# endif
-    CRYPTO_cleanup_all_ex_data();
-    ERR_free_strings();
-    ERR_remove_thread_state(NULL);
-    CRYPTO_mem_leaks_fp(stderr);
+    parameter_test();
+
+#ifndef OPENSSL_NO_CRYPTO_MDEBUG
+    if (CRYPTO_mem_leaks_fp(stderr) <= 0)
+        return 1;
+#endif
 
     return 0;
 }
