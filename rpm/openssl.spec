@@ -15,7 +15,7 @@
 %define thread_test_threads %{?threads:%{threads}}%{!?threads:1}
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
-Version: 1.0.2o
+Version: 1.0.2m
 # Do not forget to bump SHLIB_VERSION on version upgrades
 Release: 2%{?dist}
 # We have to remove certain patented algorithms from the openssl source
@@ -24,6 +24,7 @@ Release: 2%{?dist}
 Source: %{name}-%{version}.tar.gz
 Source1: hobble-openssl
 Source2: Makefile.certificate
+Source5: README.legacy-settings
 Source6: make-dummy-cert
 Source7: renew-dummy-cert
 Source8: openssl-thread-test.c
@@ -32,8 +33,6 @@ Source10: opensslconf-new-warning.h
 Source11: README.FIPS
 Source12: ec_curve.c
 Source13: ectest.c
-Source14: fixpatch
-Source15: openssl-fips.conf
 # Build changes
 Patch1: openssl-1.0.2e-rpmbuild.patch
 Patch2: openssl-1.0.2a-defaults.patch
@@ -73,6 +72,7 @@ Patch74: openssl-1.0.2j-deprecate-algos.patch
 Patch75: openssl-1.0.2a-compat-symbols.patch
 Patch76: openssl-1.0.2j-new-fips-reqs.patch
 Patch77: openssl-1.0.2j-downgrade-strength.patch
+Patch78: openssl-1.0.2k-cc-reqs.patch
 Patch90: openssl-1.0.2i-enc-fail.patch
 Patch92: openssl-1.0.2a-system-cipherlist.patch
 Patch93: openssl-1.0.2g-disable-sslv2v3.patch
@@ -85,7 +85,6 @@ Patch80: openssl-1.0.2e-wrap-pad.patch
 Patch81: openssl-1.0.2a-padlock64.patch
 Patch82: openssl-1.0.2m-trusted-first-doc.patch
 # Mer patches
-Patch200: openssl-linux-mips.patch
 Patch202: openssl-1.0.2d-remove-date-string.patch
 Patch204: openssl-1.0.2d-armtick.patch
 
@@ -155,9 +154,9 @@ from other formats to the formats used by the OpenSSL toolkit.
 %prep
 %setup -q -n %{name}-%{version}/%{name}
 
-# The hobble_openssl is called here redundantly, just to be sure.
-# The tarball has already the sources removed.
-#%{SOURCE1} > /dev/null
+# The hobble_openssl is called here as we're building from git and don't
+# need a hobbled tarball to distribute.
+bash %{SOURCE1}
 
 cp %{SOURCE12} %{SOURCE13} crypto/ec/
 
@@ -199,6 +198,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch75 -p1 -b .compat
 %patch76 -p1 -b .fips-reqs
 %patch77 -p1 -b .strength
+%patch78 -p1 -b .cc-reqs
 %patch90 -p1 -b .enc-fail
 %patch92 -p1 -b .system
 %patch93 -p1 -b .v2v3
@@ -211,7 +211,6 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch81 -p1 -b .padlock64
 %patch82 -p1 -b .trusted-first
 
-%patch200 -p1 -b .mips
 %patch202 -p1 -b .date
 %patch204 -p1 -b .armtick
 
@@ -233,6 +232,9 @@ sslarch=linux-elf
 if ! echo %{_target} | grep -q i686 ; then
 	sslflags="no-asm 386"
 fi
+%endif
+%ifarch x86_64
+sslflags=enable-ec_nistp_64_gcc_128
 %endif
 %ifarch sparcv9
 sslarch=linux-sparcv9
@@ -256,15 +258,32 @@ sslarch=linux-armv4
 %endif
 %ifarch aarch64
 sslarch=linux-aarch64
-sslflags=no-asm
+sslflags=enable-ec_nistp_64_gcc_128
 %endif
 %ifarch sh3 sh4
 sslarch=linux-generic32
 %endif
-%ifarch mips mipsel
-sslarch=linux-mips
+%ifarch ppc64 ppc64p7
+sslarch=linux-ppc64
 %endif
-# ia64, x86_64, ppc, ppc64 are OK by default
+%ifarch ppc64le
+sslarch="linux-ppc64le"
+sslflags=enable-ec_nistp_64_gcc_128
+%endif
+%ifarch mips mipsel
+sslarch="linux-mips32 -mips32r2"
+%endif
+%ifarch mips64 mips64el
+sslarch="linux64-mips64 -mips64r2"
+%endif
+%ifarch mips64el
+sslflags=enable-ec_nistp_64_gcc_128
+%endif
+%ifarch riscv64
+sslarch=linux-generic64
+%endif
+
+# ia64, x86_64, ppc are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
 # usable on all platforms.  The Configure script already knows to use -fPIC and
 # RPM_OPT_FLAGS, so we can skip specifiying them here.
@@ -286,8 +305,8 @@ make all
 # Generate hashes for the included certs.
 make rehash
 
-# Overwrite FIPS README
-cp -f %{SOURCE11} .
+# Overwrite FIPS README and copy README.legacy-settings
+cp -f %{SOURCE5} %{SOURCE11} .
 
 # Clean up the .pc files
 for i in libcrypto.pc libssl.pc openssl.pc ; do
@@ -362,21 +381,8 @@ for header in $RPM_BUILD_ROOT%{_includedir}/openssl/* ; do
 	fi
 done
 
-# Rename man pages so that they don't conflict with other system man pages.
-pushd $RPM_BUILD_ROOT%{_mandir}
-for manpage in man*/* ; do
-	if [ -L ${manpage} ]; then
-		TARGET=`ls -l ${manpage} | awk '{ print $NF }'`
-		ln -snf ${TARGET}ssl ${manpage}ssl
-		rm -f ${manpage}
-	else
-		mv ${manpage} ${manpage}ssl
-	fi
-done
-for conflict in passwd rand ; do
-	rename ${conflict} ssl${conflict} man*/${conflict}*
-done
-popd
+# Remove man pages
+rm -rf $RPM_BUILD_ROOT%{_mandir}
 
 # Pick a CA script.
 pushd  $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc
@@ -444,9 +450,6 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %dir %{_sysconfdir}/pki/CA/newcerts
 %{_sysconfdir}/pki/tls/misc/c_*
 %attr(0755,root,root) %{_bindir}/openssl
-%attr(0644,root,root) %{_mandir}/man1*/[ABD-Zabcd-z]*
-%attr(0644,root,root) %{_mandir}/man5*/*
-%attr(0644,root,root) %{_mandir}/man7*/*
 
 %files libs
 %defattr(-,root,root)
@@ -466,9 +469,9 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 
 %files devel
 %defattr(-,root,root)
+%doc doc/c-indentation.el doc/openssl.txt CHANGES
 %{_prefix}/include/openssl
 %attr(0755,root,root) %{_libdir}/*.so
-%attr(0644,root,root) %{_mandir}/man3*/*
 %attr(0644,root,root) %{_libdir}/pkgconfig/*.pc
 
 %files static
@@ -478,7 +481,6 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %files perl
 %defattr(-,root,root)
 %attr(0755,root,root) %{_bindir}/c_rehash
-%attr(0644,root,root) %{_mandir}/man1*/*.pl*
 %{_sysconfdir}/pki/tls/misc/*.pl
 %{_sysconfdir}/pki/tls/misc/tsget
 

@@ -56,7 +56,7 @@ diff -up openssl-1.0.2j/crypto/asn1/a_verify.c.deprecate-algos openssl-1.0.2j/cr
 diff -up openssl-1.0.2j/crypto/o_init.c.deprecate-algos openssl-1.0.2j/crypto/o_init.c
 --- openssl-1.0.2j/crypto/o_init.c.deprecate-algos	2017-01-05 17:49:00.000000000 +0100
 +++ openssl-1.0.2j/crypto/o_init.c	2017-01-09 16:52:29.018298611 +0100
-@@ -64,16 +64,26 @@
+@@ -64,11 +64,21 @@
  # include <unistd.h>
  # include <errno.h>
  # include <stdlib.h>
@@ -69,11 +69,6 @@ diff -up openssl-1.0.2j/crypto/o_init.c.deprecate-algos openssl-1.0.2j/crypto/o_
 +# include <openssl/dh.h>
 +# include <openssl/objects.h>
  
- # ifndef OPENSSL_NO_DEPRECATED
- /* the prototype is missing in <openssl/fips.h> */
- void FIPS_crypto_set_id_callback(unsigned long (*func)(void));
- # endif
-
  # define FIPS_MODE_SWITCH_FILE "/proc/sys/crypto/fips_enabled"
  
 +# define LEGACY_SETTINGS_FILE "/etc/pki/tls/legacy-settings"

@@ -1671,7 +1671,7 @@ diff -up openssl-1.0.2m/crypto/evp/digest.c.fips openssl-1.0.2m/crypto/evp/diges
 -#ifdef OPENSSL_FIPS
 -    FIPS_md_ctx_cleanup(ctx);
 -#endif
-     memset(ctx, '\0', sizeof(*ctx));
+     memset(ctx, '\0', sizeof *ctx);
  
      return 1;
 diff -up openssl-1.0.2m/crypto/evp/e_aes.c.fips openssl-1.0.2m/crypto/evp/e_aes.c
@@ -12753,7 +12753,7 @@ diff -up openssl-1.0.2m/crypto/o_fips.c.fips openssl-1.0.2m/crypto/o_fips.c
 diff -up openssl-1.0.2m/crypto/o_init.c.fips openssl-1.0.2m/crypto/o_init.c
 --- openssl-1.0.2m/crypto/o_init.c.fips	2017-11-02 15:32:58.000000000 +0100
 +++ openssl-1.0.2m/crypto/o_init.c	2017-11-13 09:22:31.297964011 +0100
-@@ -56,13 +56,42 @@
+@@ -56,8 +56,37 @@
  #include <e_os.h>
  #include <openssl/err.h>
  #ifdef OPENSSL_FIPS
@@ -12765,11 +12765,6 @@ diff -up openssl-1.0.2m/crypto/o_init.c.fips openssl-1.0.2m/crypto/o_init.c
 +# include <stdlib.h>
  # include <openssl/fips.h>
  # include <openssl/rand.h>
-
- # ifndef OPENSSL_NO_DEPRECATED
- /* the prototype is missing in <openssl/fips.h> */
- void FIPS_crypto_set_id_callback(unsigned long (*func)(void));
- # endif
 +
 +# define FIPS_MODE_SWITCH_FILE "/proc/sys/crypto/fips_enabled"
 +
