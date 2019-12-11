@@ -306,9 +306,12 @@ echo "xfade debug"
 cat libcrypto.pc
 
 # Clean up the .pc files
-# for i in libcrypto.pc libssl.pc openssl.pc ; do
-#   sed -i '/^Libs.private:/{s/-L[^ ]* //;s/-Wl[^ ]* //}' $i
-# done
+for i in libcrypto.pc libssl.pc openssl.pc ; do
+  sed -i '/^Libs.private:/{s/-L[^ ]* //;s/-Wl[^ ]* //}' $i
+done
+echo "after sed"
+cat libcrypto.pc
+
 
 %check
 # Verify that what was compiled actually works.
