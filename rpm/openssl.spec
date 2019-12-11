@@ -302,10 +302,13 @@ make all
 # Generate hashes for the included certs.
 make rehash
 
+echo "xfade debug"
+cat libcrypto.pc
+
 # Clean up the .pc files
-for i in libcrypto.pc libssl.pc openssl.pc ; do
-  sed -i '/^Libs.private:/{s/-L[^ ]* //;s/-Wl[^ ]* //}' $i
-done
+# for i in libcrypto.pc libssl.pc openssl.pc ; do
+#   sed -i '/^Libs.private:/{s/-L[^ ]* //;s/-Wl[^ ]* //}' $i
+# done
 
 %check
 # Verify that what was compiled actually works.
