@@ -297,6 +297,7 @@ export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-march=armv7-a+neon-vfp
 export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-mtune=cortex-a15##g"`
 export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-mabi=aapcs-linux##g"`
 CFLAGS=`echo "$RPM_OPT_FLAGS"`
+CXXFLAGS=`echo "$RPM_OPT_FLAGS"`
 
 # ia64, x86_64, ppc, ppc64 are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
