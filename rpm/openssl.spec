@@ -289,6 +289,12 @@ sslflags=enable-ec_nistp_64_gcc_128
 %ifarch riscv64
 sslarch=linux-generic64
 %endif
+
+# Filter some stuff from RPM_OPT_FLAGS to debug openssl performance regression
+# --xfade
+export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-mtune=.*##g"`
+
+
 # ia64, x86_64, ppc, ppc64 are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
 # usable on all platforms.  The Configure script already knows to use -fPIC and
