@@ -293,7 +293,7 @@ sslarch=linux-generic64
 # Filter some stuff from RPM_OPT_FLAGS to debug openssl performance regression
 # --xfade
 export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-mfpu=neon-vfpv4#\-mfpu=neon#g"`
-export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-march=armv7\-a\+neon\-vfpv4#\-march=armv7\-a#g"`
+export RPM_OPT_FLAGS=`echo "$RPM_OPT_FLAGS" | sed -e "s#\-march=armv7-a+neon-vfpv4#\-march=armv7-a#g"`
 
 
 # ia64, x86_64, ppc, ppc64 are OK by default
