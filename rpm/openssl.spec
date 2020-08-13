@@ -9,97 +9,83 @@
 # 0.9.8g soversion = 7
 # 0.9.8jk + EAP-FAST soversion = 8
 # 1.0.0 soversion = 10
-%define soversion 10
+# 1.1.0 soversion = 1.1 (same as upstream although presence of some symbols
+#                        depends on build configuration options)
+%define soversion 1.1
+%define nofips 1
 
 # Number of threads to spawn when testing some threading fixes.
 %define thread_test_threads %{?threads:%{threads}}%{!?threads:1}
 Summary: Utilities from the general purpose cryptography library with TLS implementation
 Name: openssl
-Version: 1.0.2o
+Version: 1.1.1g
 # Do not forget to bump SHLIB_VERSION on version upgrades
-Release: 2%{?dist}
+Release: 1%{?dist}
+
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
-Source: %{name}-%{version}.tar.gz
+Source: openssl-%{version}.tar.gz
 Source1: hobble-openssl
 Source2: Makefile.certificate
 Source6: make-dummy-cert
 Source7: renew-dummy-cert
-Source8: openssl-thread-test.c
 Source9: opensslconf-new.h
 Source10: opensslconf-new-warning.h
+Source11: README.FIPS
 Source12: ec_curve.c
 Source13: ectest.c
 # Build changes
-Patch1: openssl-1.0.2e-rpmbuild.patch
-Patch2: openssl-1.0.2a-defaults.patch
-Patch4: openssl-1.0.2i-enginesdir.patch
-Patch5: openssl-1.0.2a-no-rpath.patch
-Patch6: openssl-1.0.2a-test-use-localhost.patch
-Patch7: openssl-1.0.0-timezone.patch
-Patch8: openssl-1.0.1c-perlfind.patch
-Patch9: openssl-1.0.1c-aliasing.patch
+Patch1: openssl-1.1.1-build.patch
+Patch2: openssl-1.1.1-defaults.patch
+Patch3: openssl-1.1.1-no-html.patch
+Patch4: openssl-1.1.1-man-rename.patch
 # Bug fixes
-Patch23: openssl-1.0.2c-default-paths.patch
-Patch24: openssl-1.0.2a-issuer-hash.patch
+Patch21: openssl-1.1.0-issuer-hash.patch
 # Functionality changes
-Patch33: openssl-1.0.0-beta4-ca-dir.patch
-Patch34: openssl-1.0.2a-x509.patch
-Patch35: openssl-1.0.2a-version-add-engines.patch
-Patch39: openssl-1.0.2a-ipv6-apps.patch
-Patch40: openssl-1.0.2m-fips.patch
-Patch43: openssl-1.0.2m-krb5keytab.patch
-Patch45: openssl-1.0.2a-env-zlib.patch
-Patch47: openssl-1.0.2a-readme-warning.patch
-Patch49: openssl-1.0.1i-algo-doc.patch
-Patch50: openssl-1.0.2a-dtls1-abi.patch
-Patch51: openssl-1.0.2a-version.patch
-Patch56: openssl-1.0.2a-rsa-x931.patch
-Patch58: openssl-1.0.2a-fips-md5-allow.patch
-Patch60: openssl-1.0.2a-apps-dgst.patch
-Patch63: openssl-1.0.2a-xmpp-starttls.patch
-Patch65: openssl-1.0.2i-chil-fixes.patch
-Patch66: openssl-1.0.2h-pkgconfig.patch
-Patch68: openssl-1.0.2m-secure-getenv.patch
-Patch70: openssl-1.0.2a-fips-ec.patch
-Patch71: openssl-1.0.2m-manfix.patch
-Patch72: openssl-1.0.2a-fips-ctor.patch
-Patch73: openssl-1.0.2c-ecc-suiteb.patch
-Patch74: openssl-1.0.2j-deprecate-algos.patch
-Patch75: openssl-1.0.2a-compat-symbols.patch
-Patch76: openssl-1.0.2j-new-fips-reqs.patch
-Patch77: openssl-1.0.2j-downgrade-strength.patch
-Patch78: openssl-1.0.2k-cc-reqs.patch
-Patch90: openssl-1.0.2i-enc-fail.patch
-Patch92: openssl-1.0.2a-system-cipherlist.patch
-Patch93: openssl-1.0.2g-disable-sslv2v3.patch
-Patch94: openssl-1.0.2d-secp256k1.patch
-Patch95: openssl-1.0.2e-remove-nistp224.patch
-Patch96: openssl-1.0.2e-speed-doc.patch
-Patch99: openssl-1.0.2k-fips-randlock.patch
+Patch31: openssl-1.1.1-conf-paths.patch
+Patch32: openssl-1.1.1-version-add-engines.patch
+Patch33: openssl-1.1.1-apps-dgst.patch
+Patch36: openssl-1.1.1-no-brainpool.patch
+Patch37: openssl-1.1.1-ec-curves.patch
+Patch38: openssl-1.1.1-no-weak-verify.patch
+Patch40: openssl-1.1.1-disable-ssl3.patch
+Patch41: openssl-1.1.1-system-cipherlist.patch
+Patch42: openssl-1.1.1-fips.patch
+Patch43: openssl-1.1.1-ignore-bound.patch
+Patch44: openssl-1.1.1-version-override.patch
+Patch45: openssl-1.1.1-weak-ciphers.patch
+Patch46: openssl-1.1.1-seclevel.patch
+Patch47: openssl-1.1.1-ts-sha256-default.patch
+Patch48: openssl-1.1.1-fips-post-rand.patch
+Patch49: openssl-1.1.1-evp-kdf.patch
+Patch50: openssl-1.1.1-ssh-kdf.patch
+Patch51: openssl-1.1.1-intel-cet.patch
+Patch60: openssl-1.1.1-krb5-kdf.patch
+Patch61: openssl-1.1.1-edk2-build.patch
+Patch62: openssl-1.1.1-fips-curves.patch
+Patch65: openssl-1.1.1-fips-drbg-selftest.patch
+Patch66: openssl-1.1.1-fips-dh.patch
+Patch67: openssl-1.1.1-kdf-selftest.patch
+Patch68: openssl-1.1.1-reneg-no-extms.patch
+Patch69: openssl-1.1.1-alpn-cb.patch
+Patch70: openssl-1.1.1-rewire-fips-drbg.patch
 # Backported fixes including security fixes
-Patch80: openssl-1.0.2e-wrap-pad.patch
-Patch81: openssl-1.0.2a-padlock64.patch
-Patch82: openssl-1.0.2m-trusted-first-doc.patch
-Patch83: CVE-2018-0737.patch	
-Patch84: CVE-2018-0732.patch
-Patch85: CVE-2018-0734.patch
-Patch86: CVE-2019-1559.patch
-Patch87: CVE-2019-1547.patch
-Patch88: CVE-2019-1563.patch 
-Patch89: CVE-2019-1551.patch 
-# Mer patches
-Patch202: openssl-1.0.2d-remove-date-string.patch
-Patch204: openssl-1.0.2d-armtick.patch
+Patch52: openssl-1.1.1-s390x-update.patch
+Patch53: openssl-1.1.1-fips-crng-test.patch
+Patch55: openssl-1.1.1-arm-update.patch
+Patch56: openssl-1.1.1-s390x-ecc.patch
 
 License: OpenSSL
 URL: http://www.openssl.org/
 BuildRequires: coreutils, perl, sed, zlib-devel
+BuildRequires: lksctp-tools-devel
 # /usr/bin/cmp
 BuildRequires: diffutils
 # /usr/bin/rename
 BuildRequires: util-linux
+
+
 Requires: coreutils, make
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
@@ -156,79 +142,49 @@ from other formats to the formats used by the OpenSSL toolkit.
 
 # The hobble_openssl is called here redundantly, just to be sure.
 # The tarball has already the sources removed.
-#%{SOURCE1} > /dev/null
+sh %{SOURCE1} > /dev/null
 
-cp %{SOURCE12} %{SOURCE13} crypto/ec/
+cp %{SOURCE12} crypto/ec/
+cp %{SOURCE13} test/
 
-%patch1 -p1 -b .rpmbuild
+%patch1 -p1 -b .build   %{?_rawbuild}
 %patch2 -p1 -b .defaults
-%patch4 -p1 -b .enginesdir %{?_rawbuild}
-%patch5 -p1 -b .no-rpath
-%patch6 -p1 -b .use-localhost
-%patch7 -p1 -b .timezone
-%patch8 -p1 -b .perlfind %{?_rawbuild}
-%patch9 -p1 -b .aliasing
+%patch3 -p1 -b .no-html  %{?_rawbuild}
+%patch4 -p1 -b .man-rename
 
-%patch23 -p1 -b .default-paths
-%patch24 -p1 -b .issuer-hash
+%patch21 -p1 -b .issuer-hash
 
-%patch33 -p1 -b .ca-dir
-%patch34 -p1 -b .x509
-%patch35 -p1 -b .version-add-engines
-%patch39 -p1 -b .ipv6-apps
-%patch40 -p1 -b .fips
-%patch43 -p1 -b .krb5keytab
-%patch45 -p1 -b .env-zlib
-%patch47 -p1 -b .warning
-%patch49 -p1 -b .algo-doc
-%patch50 -p1 -b .dtls1-abi
-%patch51 -p1 -b .version
-%patch56 -p1 -b .x931
-%patch58 -p1 -b .md5-allow
-%patch60 -p1 -b .dgst
-%patch63 -p1 -b .starttls
-%patch65 -p1 -b .chil
-%patch66 -p1 -b .pkgconfig
-%patch68 -p1 -b .secure-getenv
-%patch70 -p1 -b .fips-ec
-%patch71 -p1 -b .manfix
-%patch72 -p1 -b .fips-ctor
-%patch73 -p1 -b .suiteb
-%patch74 -p1 -b .deprecate-algos
-%patch75 -p1 -b .compat
-%patch76 -p1 -b .fips-reqs
-%patch77 -p1 -b .strength
-%patch78 -p1 -b .cc-reqs
-%patch90 -p1 -b .enc-fail
-%patch92 -p1 -b .system
-%patch93 -p1 -b .v2v3
-%patch94 -p1 -b .secp256k1
-%patch95 -p1 -b .nistp224
-%patch96 -p1 -b .speed-doc
-%patch99 -p1 -b .randlock
-
-%patch80 -p1 -b .wrap
-%patch81 -p1 -b .padlock64
-%patch82 -p1 -b .trusted-first
-%patch83 -p1 -b .2018-0737	
-%patch84 -p1 -b .2018-0732
-%patch85 -p1 -b .2018-0734
-%patch86 -p1 -b .2019-1559
-%patch87 -p1 -b .2019-1547
-%patch88 -p1 -b .2019-1563 
-%patch89 -p1 -b .2019-1551 
-
-%patch202 -p1 -b .date
-%patch204 -p1 -b .armtick
-
-sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
-
-# Modify the various perl scripts to reference perl in the right location.
-perl util/perlpath.pl `dirname %{__perl}`
-
-# Generate a table with the compile settings for my perusal.
-touch Makefile
-make TABLE PERL=%{__perl}
+%patch31 -p1 -b .conf-paths
+%patch32 -p1 -b .version-add-engines
+%patch33 -p1 -b .dgst
+%patch36 -p1 -b .no-brainpool
+%patch37 -p1 -b .curves
+%patch38 -p1 -b .no-weak-verify
+%patch40 -p1 -b .disable-ssl3
+%patch41 -p1 -b .system-cipherlist
+%patch42 -p1 -b .fips
+%patch43 -p1 -b .ignore-bound
+%patch44 -p1 -b .version-override
+%patch45 -p1 -b .weak-ciphers
+%patch46 -p1 -b .seclevel
+%patch47 -p1 -b .ts-sha256-default
+%patch48 -p1 -b .fips-post-rand
+%patch49 -p1 -b .evp-kdf
+%patch50 -p1 -b .ssh-kdf
+%patch51 -p1 -b .intel-cet
+%patch52 -p1 -b .s390x-update
+%patch53 -p1 -b .crng-test
+%patch55 -p1 -b .arm-update
+%patch56 -p1 -b .s390x-ecc
+%patch60 -p1 -b .krb5-kdf
+%patch61 -p1 -b .edk2-build
+%patch62 -p1 -b .fips-curves
+%patch65 -p1 -b .drbg-selftest
+%patch66 -p1 -b .fips-dh
+%patch67 -p1 -b .kdf-selftest
+%patch68 -p1 -b .reneg-no-extms
+%patch69 -p1 -b .alpn-cb
+%patch70 -p1 -b .rewire-fips-drbg
 
 %build
 # Figure out which flags we want to use.
@@ -265,7 +221,7 @@ sslarch=linux-armv4
 %endif
 %ifarch aarch64
 sslarch=linux-aarch64
-sslflags=no-asm
+sslflags=enable-ec_nistp_64_gcc_128
 %endif
 %ifarch sh3 sh4
 sslarch=linux-generic32
@@ -289,31 +245,37 @@ sslflags=enable-ec_nistp_64_gcc_128
 %ifarch riscv64
 sslarch=linux-generic64
 %endif
-# ia64, x86_64, ppc, ppc64 are OK by default
+
+# Add -Wa,--noexecstack here so that libcrypto's assembler modules will be
+# marked as not requiring an executable stack.
+# Also add -DPURIFY to make using valgrind with openssl easier as we do not
+# want to depend on the uninitialized memory as a source of entropy anyway.
+RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -Wa,--generate-missing-build-notes=yes -DPURIFY $RPM_LD_FLAGS"
+
+export HASHBANGPERL=/usr/bin/perl
+
+# ia64, x86_64, ppc are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
 # usable on all platforms.  The Configure script already knows to use -fPIC and
 # RPM_OPT_FLAGS, so we can skip specifiying them here.
 export CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=64"
 export CXXFLAGS="$CXXFLAGS -D_FILE_OFFSET_BITS=64"
 export CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
-
 ./Configure \
-	--prefix=/usr --openssldir=%{_sysconfdir}/pki/tls ${sslflags} \
-	zlib enable-camellia enable-seed enable-tlsext enable-rfc3779 \
-	enable-cms enable-md2 no-mdc2 no-rc5 no-ec2m no-gost no-srp \
-       --enginesdir=%{_libdir}/openssl/engines \
-       shared  ${sslarch} %{?!nofips:fips}
+	--prefix=%{_prefix} --openssldir=%{_sysconfdir}/pki/tls ${sslflags} \
+	zlib enable-camellia enable-seed enable-rfc3779 \
+	enable-cms enable-md2 enable-rc5 enable-ssl3 enable-ssl3-method \
+	enable-weak-ssl-ciphers \
+	no-mdc2 no-ec2m no-sm2 no-sm4 \
+	shared  ${sslarch} %{?!nofips:fips} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\""'
 
-# Add -Wa,--noexecstack here so that libcrypto's assembler modules will be
-# marked as not requiring an executable stack.
-# Also add -DPURIFY to make using valgrind with openssl easier as we do not
-# want to depend on the uninitialized memory as a source of entropy anyway.
-RPM_OPT_FLAGS="$RPM_OPT_FLAGS -Wa,--noexecstack -DPURIFY"
-make depend
+# Do not run this in a production package the FIPS symbols must be patched-in
+#util/mkdef.pl crypto update
+
 make all
 
-# Generate hashes for the included certs.
-make rehash
+# Overwrite FIPS README
+cp -f %{SOURCE11} .
 
 # Clean up the .pc files
 for i in libcrypto.pc libssl.pc openssl.pc ; do
@@ -321,75 +283,58 @@ for i in libcrypto.pc libssl.pc openssl.pc ; do
 done
 
 %check
-# Verify that what was compiled actually works.
 
-# We must revert patch33 before tests otherwise they will fail
-patch -p1 -R < %{PATCH33}
 
-LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-export LD_LIBRARY_PATH
-OPENSSL_ENABLE_MD5_VERIFY=
-export OPENSSL_ENABLE_MD5_VERIFY
-make -C test apps tests
-%{__cc} -o openssl-thread-test \
-	-I./include \
-	$RPM_OPT_FLAGS \
-	%{SOURCE8} \
-	-L. \
-	-lssl -lcrypto \
-	-lpthread -lz -ldl
-./openssl-thread-test --threads %{thread_test_threads}
-
-# Add generation of HMAC checksum of the final stripped library
-%define __spec_install_post \
-    %{?__debug_package:%{__debug_install_post}} \
-    %{__arch_install_post} \
-    %{__os_install_post} \
-    crypto/fips/fips_standalone_hmac $RPM_BUILD_ROOT/%{_lib}/libcrypto.so.%{version} >$RPM_BUILD_ROOT/%{_lib}/.libcrypto.so.%{version}.hmac \
-    ln -sf .libcrypto.so.%{version}.hmac $RPM_BUILD_ROOT/%{_lib}/.libcrypto.so.%{soversion}.hmac \
-    crypto/fips/fips_standalone_hmac $RPM_BUILD_ROOT%{_libdir}/libssl.so.%{version} >$RPM_BUILD_ROOT%{_libdir}/.libssl.so.%{version}.hmac \
-    ln -sf .libssl.so.%{version}.hmac $RPM_BUILD_ROOT%{_libdir}/.libssl.so.%{soversion}.hmac \
-%{nil}
+%define __provides_exclude_from %{_libdir}/openssl
 
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 # Install OpenSSL.
 install -d $RPM_BUILD_ROOT{%{_bindir},%{_includedir},%{_libdir},%{_mandir},%{_libdir}/openssl}
 # We don't need to install docs now because we don't package it.
-make INSTALL_PREFIX=$RPM_BUILD_ROOT install_sw
-mv $RPM_BUILD_ROOT%{_libdir}/engines $RPM_BUILD_ROOT%{_libdir}/openssl
+make DESTDIR=$RPM_BUILD_ROOT install_sw install_ssldirs
+mv $RPM_BUILD_ROOT%{_libdir}/engines-%{soversion} $RPM_BUILD_ROOT%{_libdir}/openssl
 rename so.%{soversion} so.%{version} $RPM_BUILD_ROOT%{_libdir}/*.so.%{soversion}
-mkdir $RPM_BUILD_ROOT/%{_lib}
-mv $RPM_BUILD_ROOT%{_libdir}/libcrypto.so.%{version} $RPM_BUILD_ROOT/%{_lib}
 for lib in $RPM_BUILD_ROOT%{_libdir}/*.so.%{version} ; do
+	
 	chmod 755 ${lib}
+	
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`
+	
 	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`.%{soversion}
+	
 done
-for lib in $RPM_BUILD_ROOT/%{_lib}/*.so.%{version} ; do
-	chmod 755 ${lib}
-	ln -s -f ../../%{_lib}/`basename ${lib}` $RPM_BUILD_ROOT%{_libdir}/`basename ${lib} .%{version}`
-	ln -s -f `basename ${lib}` $RPM_BUILD_ROOT/%{_lib}/`basename ${lib} .%{version}`.%{soversion}
-done
-
 # Install a makefile for generating keys and self-signed certs, and a script
 # for generating them on the fly.
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/Makefile
-install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/make-dummy-cert
-install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/certs/renew-dummy-cert
+#install -m644 %{SOURCE2} $RPM_BUILD_ROOT%{_docdir}/Makefile.certificate - docs aren't build
+install -m755 %{SOURCE6} $RPM_BUILD_ROOT%{_bindir}/make-dummy-cert
+install -m755 %{SOURCE7} $RPM_BUILD_ROOT%{_bindir}/renew-dummy-cert
 
-# Make sure we actually include the headers we built against.
-for header in $RPM_BUILD_ROOT%{_includedir}/openssl/* ; do
-	if [ -f ${header} -a -f include/openssl/$(basename ${header}) ] ; then
-		install -m644 include/openssl/`basename ${header}` ${header}
-	fi
-done
-
-# Pick a CA script.
-pushd  $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/misc
-mv CA.sh CA
-popd
+# docs are disabled
+# BEGIN
+# Rename man pages so that they don't conflict with other system man pages.
+#pushd $RPM_BUILD_ROOT%{_mandir}
+#ln -s -f config.5 man5/openssl.cnf.5
+#for manpage in man*/* ; do
+#	if [ -L ${manpage} ]; then
+#		TARGET=`ls -l ${manpage} | awk '{ print $NF }'`
+#		ln -snf ${TARGET}ssl ${manpage}ssl
+#		rm -f ${manpage}
+#	else
+#		mv ${manpage} ${manpage}ssl
+#	fi
+#done
+#for conflict in passwd rand ; do
+#	rename ${conflict} ssl${conflict} man*/${conflict}*
+# Fix dangling symlinks
+#	manpage=man1/openssl-${conflict}.*
+#	if [ -L ${manpage} ] ; then
+#		ln -snf ssl${conflict}.1ssl ${manpage}
+#	fi
+#done
+#popd
+# END
 
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA
 mkdir -m700 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/private
@@ -397,9 +342,13 @@ mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/certs
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/crl
 mkdir -m755 $RPM_BUILD_ROOT%{_sysconfdir}/pki/CA/newcerts
 
-# Ensure the openssl.cnf timestamp is identical across builds to avoid
+# Ensure the config file timestamps are identical across builds to avoid
 # mulitlib conflicts and unnecessary renames on upgrade
 touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf
+touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf
+
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/openssl.cnf.dist
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/pki/tls/ct_log_list.cnf.dist
 
 # Determine which arch opensslconf.h is going to try to #include.
 basearch=%{_arch}
@@ -413,6 +362,13 @@ basearch=sparc
 basearch=sparc64
 %endif
 
+# Next step of gradual disablement of SSL3.
+# Make SSL3 disappear to newly built dependencies.
+sed -i '/^\#ifndef OPENSSL_NO_SSL_TRACE/i\
+#ifndef OPENSSL_NO_SSL3\
+# define OPENSSL_NO_SSL3\
+#endif' $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
+
 %ifarch %{multilib_arches}
 # Do an opensslconf.h switcheroo to avoid file conflicts on systems where you
 # can have both a 32- and 64-bit version of the library, and they each need
@@ -424,56 +380,57 @@ cat $RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h >> \
 install -m644 %{SOURCE9} \
 	$RPM_BUILD_ROOT/%{_prefix}/include/openssl/opensslconf.h
 %endif
-
-# Remove unused files from upstream fips support
-rm -rf $RPM_BUILD_ROOT/%{_bindir}/openssl_fips_fingerprint
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/fips_premain.*
-rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
+LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export LD_LIBRARY_PATH
 
 %files
 %defattr(-,root,root)
-%doc FAQ LICENSE CHANGES NEWS INSTALL README
-%doc doc/c-indentation.el doc/openssl.txt
-# these files got remove - xfade
-# %doc doc/openssl_button.html doc/openssl_button.gif
-%doc doc/ssleay.txt
-%{_sysconfdir}/pki/tls/certs/make-dummy-cert
-%{_sysconfdir}/pki/tls/certs/renew-dummy-cert
-%{_sysconfdir}/pki/tls/certs/Makefile
-%{_sysconfdir}/pki/tls/misc/CA
-%dir %{_sysconfdir}/pki/CA
-%dir %{_sysconfdir}/pki/CA/private
-%dir %{_sysconfdir}/pki/CA/certs
-%dir %{_sysconfdir}/pki/CA/crl
-%dir %{_sysconfdir}/pki/CA/newcerts
-%{_sysconfdir}/pki/tls/misc/c_*
+%attr(0755,root,root) %{_bindir}/c_rehash
+%{!?_licensedir:%global license %%doc}
+%license LICENSE
+%doc FAQ NEWS README README.FIPS
+%{_bindir}/make-dummy-cert
+%{_bindir}/renew-dummy-cert
 %attr(0755,root,root) %{_bindir}/openssl
-
+# docs are disabled
+# BEGIN
+#%{_mandir}/man1*/*
+#%{_mandir}/man5*/*
+#%{_mandir}/man7*/*
+#%{_docdir}/Makefile.certificate
+#%exclude %{_mandir}/man1*/*.pl*
+#%exclude %{_mandir}/man1*/c_rehash*
+#%exclude %{_mandir}/man1*/tsget*
+#%exclude %{_mandir}/man1*/openssl-tsget*
+# END
 %files libs
 %defattr(-,root,root)
+%{!?_licensedir:%global license %%doc}
 %license LICENSE
 %dir %{_sysconfdir}/pki/tls
 %dir %{_sysconfdir}/pki/tls/certs
 %dir %{_sysconfdir}/pki/tls/misc
 %dir %{_sysconfdir}/pki/tls/private
 %config %{_sysconfdir}/pki/tls/openssl.cnf
-%attr(0755,root,root) /%{_lib}/libcrypto.so.%{version}
-%attr(0755,root,root) /%{_lib}/libcrypto.so.%{soversion}
+%config %{_sysconfdir}/pki/tls/ct_log_list.cnf
+%attr(0755,root,root) %{_libdir}/libcrypto.so.%{version}
 %attr(0755,root,root) %{_libdir}/libssl.so.%{version}
-%attr(0755,root,root) %{_libdir}/libssl.so.%{soversion}
-%attr(0644,root,root) /%{_lib}/.libcrypto.so.*.hmac
-%attr(0644,root,root) %{_libdir}/.libssl.so.*.hmac
-%attr(0755,root,root) %{_libdir}/openssl
+%{_libdir}/libcrypto.so.%{soversion}
+%{_libdir}/libssl.so.%{soversion}
+
+#%attr(0644,root,root) %{_libdir}/.libcrypto.so.*.hmac
+#%attr(0644,root,root) %{_libdir}/.libssl.so.*.hmac
+%attr(0755,root,root) %{_libdir}/%{name}
 
 %files devel
 %defattr(-,root,root)
-%doc doc/c-indentation.el doc/openssl.txt CHANGES
+%doc CHANGES doc/dir-locals.example.el doc/openssl-c-indent.el
 %{_prefix}/include/openssl
 %attr(0755,root,root) %{_libdir}/*.so
+#%{_mandir}/man3*/*  docs are disabled
 %attr(0644,root,root) %{_libdir}/pkgconfig/*.pc
 
 %files static
-%defattr(-,root,root)
 %attr(0644,root,root) %{_libdir}/*.a
 
 %files perl
@@ -481,6 +438,18 @@ rm -rf $RPM_BUILD_ROOT/%{_libdir}/fipscanister.*
 %attr(0755,root,root) %{_bindir}/c_rehash
 %{_sysconfdir}/pki/tls/misc/*.pl
 %{_sysconfdir}/pki/tls/misc/tsget
+# docs are disabled
+# BEGIN
+#%{_mandir}/man1*/*.pl*
+#%{_mandir}/man1*/c_rehash*
+#%{_mandir}/man1*/tsget*
+#%{_mandir}/man1*/openssl-tsget*
+# END
+%dir %{_sysconfdir}/pki/CA
+%dir %{_sysconfdir}/pki/CA/private
+%dir %{_sysconfdir}/pki/CA/certs
+%dir %{_sysconfdir}/pki/CA/crl
+%dir %{_sysconfdir}/pki/CA/newcerts
 
 %post libs -p /sbin/ldconfig
 
