@@ -1906,7 +1906,7 @@ diff -up openssl-1.1.1j/crypto/fips/fips.c.fips openssl-1.1.1j/crypto/fips/fips.
 +void FIPS_selftest_check(void)
 +{
 +    if (fips_selftest_fail) {
-+        OpenSSLDie(__FILE__, __LINE__, "FATAL FIPS SELFTEST FAILURE");
++        OPENSSL_die(__FILE__, __LINE__, "FATAL FIPS SELFTEST FAILURE");
 +    }
 +}
 +
