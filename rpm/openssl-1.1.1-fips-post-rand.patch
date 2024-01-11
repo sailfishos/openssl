@@ -1,6 +1,7 @@
-diff -up openssl-1.1.1i/crypto/fips/fips.c.fips-post-rand openssl-1.1.1i/crypto/fips/fips.c
---- openssl-1.1.1i/crypto/fips/fips.c.fips-post-rand	2020-12-09 10:26:41.634106328 +0100
-+++ openssl-1.1.1i/crypto/fips/fips.c	2020-12-09 10:26:41.652106475 +0100
+Index: openssl-1.1.1i/crypto/fips/fips.c
+===================================================================
+--- openssl-1.1.1i.orig/crypto/fips/fips.c	2020-12-08 16:46:23.666760618 +0100
++++ openssl-1.1.1i/crypto/fips/fips.c	2020-12-08 16:46:25.626772700 +0100
 @@ -68,6 +68,7 @@
  
  # include <openssl/fips.h>
@@ -51,9 +52,35 @@ diff -up openssl-1.1.1i/crypto/fips/fips.c.fips-post-rand openssl-1.1.1i/crypto/
          ret = 1;
          goto end;
      }
-diff -up openssl-1.1.1i/crypto/rand/drbg_lib.c.fips-post-rand openssl-1.1.1i/crypto/rand/drbg_lib.c
---- openssl-1.1.1i/crypto/rand/drbg_lib.c.fips-post-rand	2020-12-08 14:20:59.000000000 +0100
-+++ openssl-1.1.1i/crypto/rand/drbg_lib.c	2020-12-09 10:26:41.652106475 +0100
+Index: openssl-1.1.1i/include/crypto/fips_int.h
+===================================================================
+--- openssl-1.1.1i.orig/include/crypto/fips_int.h	2020-12-08 16:46:23.666760618 +0100
++++ openssl-1.1.1i/include/crypto/fips_int.h	2020-12-08 16:46:25.626772700 +0100
+@@ -77,6 +77,8 @@ int FIPS_selftest_hmac(void);
+ int FIPS_selftest_drbg(void);
+ int FIPS_selftest_cmac(void);
+ 
++int fips_in_post(void);
++
+ int fips_pkey_signature_test(EVP_PKEY *pkey,
+                                  const unsigned char *tbs, int tbslen,
+                                  const unsigned char *kat,
+Index: openssl-1.1.1i/include/crypto/rand.h
+===================================================================
+--- openssl-1.1.1i.orig/include/crypto/rand.h	2020-12-08 16:46:23.670760642 +0100
++++ openssl-1.1.1i/include/crypto/rand.h	2020-12-08 16:46:25.626772700 +0100
+@@ -24,6 +24,7 @@
+ typedef struct rand_pool_st RAND_POOL;
+ 
+ void rand_cleanup_int(void);
++void rand_force_reseed(void);
+ void rand_drbg_cleanup_int(void);
+ void drbg_delete_thread_state(void);
+ 
+Index: openssl-1.1.1i/crypto/rand/drbg_lib.c
+===================================================================
+--- openssl-1.1.1i.orig/crypto/rand/drbg_lib.c	2020-12-08 16:46:23.670760642 +0100
++++ openssl-1.1.1i/crypto/rand/drbg_lib.c	2020-12-08 16:46:25.626772700 +0100
 @@ -1005,6 +1005,20 @@ size_t rand_drbg_seedlen(RAND_DRBG *drbg
      return min_entropy > min_entropylen ? min_entropy : min_entropylen;
  }
@@ -75,14 +102,15 @@ diff -up openssl-1.1.1i/crypto/rand/drbg_lib.c.fips-post-rand openssl-1.1.1i/cry
  /* Implements the default OpenSSL RAND_add() method */
  static int drbg_add(const void *buf, int num, double randomness)
  {
-diff -up openssl-1.1.1i/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1i/crypto/rand/rand_unix.c
---- openssl-1.1.1i/crypto/rand/rand_unix.c.fips-post-rand	2020-12-08 14:20:59.000000000 +0100
-+++ openssl-1.1.1i/crypto/rand/rand_unix.c	2020-12-09 10:36:59.531221903 +0100
+Index: openssl-1.1.1i/crypto/rand/rand_unix.c
+===================================================================
+--- openssl-1.1.1i.orig/crypto/rand/rand_unix.c	2020-12-08 16:46:23.670760642 +0100
++++ openssl-1.1.1i/crypto/rand/rand_unix.c	2020-12-08 16:47:33.695192297 +0100
 @@ -17,10 +17,12 @@
  #include <openssl/crypto.h>
  #include "rand_local.h"
  #include "crypto/rand.h"
-+#include "crypto/fips.h"
++#include "crypto/fips_int.h"
  #include <stdio.h>
  #include "internal/dso.h"
  #ifdef __linux
@@ -164,26 +192,3 @@ diff -up openssl-1.1.1i/crypto/rand/rand_unix.c.fips-post-rand openssl-1.1.1i/cr
      return rand_pool_entropy_available(pool);
  #  endif
  }
-diff -up openssl-1.1.1i/include/crypto/fips.h.fips-post-rand openssl-1.1.1i/include/crypto/fips.h
---- openssl-1.1.1i/include/crypto/fips.h.fips-post-rand	2020-12-09 10:26:41.639106369 +0100
-+++ openssl-1.1.1i/include/crypto/fips.h	2020-12-09 10:26:41.657106516 +0100
-@@ -77,6 +77,8 @@ int FIPS_selftest_hmac(void);
- int FIPS_selftest_drbg(void);
- int FIPS_selftest_cmac(void);
- 
-+int fips_in_post(void);
-+
- int fips_pkey_signature_test(EVP_PKEY *pkey,
-                                  const unsigned char *tbs, int tbslen,
-                                  const unsigned char *kat,
-diff -up openssl-1.1.1i/include/crypto/rand.h.fips-post-rand openssl-1.1.1i/include/crypto/rand.h
---- openssl-1.1.1i/include/crypto/rand.h.fips-post-rand	2020-12-08 14:20:59.000000000 +0100
-+++ openssl-1.1.1i/include/crypto/rand.h	2020-12-09 10:26:41.657106516 +0100
-@@ -24,6 +24,7 @@
- typedef struct rand_pool_st RAND_POOL;
- 
- void rand_cleanup_int(void);
-+void rand_force_reseed(void);
- void rand_drbg_cleanup_int(void);
- void drbg_delete_thread_state(void);
- 

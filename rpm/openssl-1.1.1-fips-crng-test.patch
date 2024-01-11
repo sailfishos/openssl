@@ -1,6 +1,26 @@
-diff -up openssl-1.1.1g/crypto/rand/build.info.crng-test openssl-1.1.1g/crypto/rand/build.info
---- openssl-1.1.1g/crypto/rand/build.info.crng-test	2020-04-23 13:30:45.863389837 +0200
-+++ openssl-1.1.1g/crypto/rand/build.info	2020-04-23 13:31:55.847069892 +0200
+Index: openssl-1.1.1g/include/crypto/rand.h
+===================================================================
+--- openssl-1.1.1g.orig/include/crypto/rand.h	2020-04-21 15:59:25.552654754 +0200
++++ openssl-1.1.1g/include/crypto/rand.h	2020-04-21 15:59:27.208663772 +0200
+@@ -49,6 +49,14 @@ size_t rand_drbg_get_additional_data(RAN
+ 
+ void rand_drbg_cleanup_additional_data(RAND_POOL *pool, unsigned char *out);
+ 
++/* CRNG test entropy filter callbacks. */
++size_t rand_crngt_get_entropy(RAND_DRBG *drbg,
++                              unsigned char **pout,
++                              int entropy, size_t min_len, size_t max_len,
++                              int prediction_resistance);
++void rand_crngt_cleanup_entropy(RAND_DRBG *drbg,
++                                unsigned char *out, size_t outlen);
++
+ /*
+  * RAND_POOL functions
+  */
+Index: openssl-1.1.1g/crypto/rand/build.info
+===================================================================
+--- openssl-1.1.1g.orig/crypto/rand/build.info	2020-04-21 15:59:27.208663772 +0200
++++ openssl-1.1.1g/crypto/rand/build.info	2020-04-21 16:00:32.869021309 +0200
 @@ -1,6 +1,6 @@
  LIBS=../../libcrypto
  SOURCE[../../libcrypto]=\
@@ -9,9 +29,10 @@ diff -up openssl-1.1.1g/crypto/rand/build.info.crng-test openssl-1.1.1g/crypto/r
          rand_win.c rand_unix.c rand_vms.c drbg_lib.c drbg_ctr.c
  
  INCLUDE[drbg_ctr.o]=../modes
-diff -up openssl-1.1.1g/crypto/rand/drbg_lib.c.crng-test openssl-1.1.1g/crypto/rand/drbg_lib.c
---- openssl-1.1.1g/crypto/rand/drbg_lib.c.crng-test	2020-04-23 13:30:45.818390686 +0200
-+++ openssl-1.1.1g/crypto/rand/drbg_lib.c	2020-04-23 13:30:45.864389819 +0200
+Index: openssl-1.1.1g/crypto/rand/drbg_lib.c
+===================================================================
+--- openssl-1.1.1g.orig/crypto/rand/drbg_lib.c	2020-04-21 15:59:25.552654754 +0200
++++ openssl-1.1.1g/crypto/rand/drbg_lib.c	2020-04-21 15:59:27.208663772 +0200
 @@ -67,7 +67,7 @@ static CRYPTO_THREAD_LOCAL private_drbg;
  
  
@@ -35,9 +56,10 @@ diff -up openssl-1.1.1g/crypto/rand/drbg_lib.c.crng-test openssl-1.1.1g/crypto/r
  #ifndef RAND_DRBG_GET_RANDOM_NONCE
          drbg->get_nonce = rand_drbg_get_nonce;
          drbg->cleanup_nonce = rand_drbg_cleanup_nonce;
-diff -up openssl-1.1.1g/crypto/rand/rand_crng_test.c.crng-test openssl-1.1.1g/crypto/rand/rand_crng_test.c
---- openssl-1.1.1g/crypto/rand/rand_crng_test.c.crng-test	2020-04-23 13:30:45.864389819 +0200
-+++ openssl-1.1.1g/crypto/rand/rand_crng_test.c	2020-04-23 13:30:45.864389819 +0200
+Index: openssl-1.1.1g/crypto/rand/rand_crng_test.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ openssl-1.1.1g/crypto/rand/rand_crng_test.c	2020-04-21 15:59:27.208663772 +0200
 @@ -0,0 +1,118 @@
 +/*
 + * Copyright 2019 The OpenSSL Project Authors. All Rights Reserved.
@@ -157,9 +179,10 @@ diff -up openssl-1.1.1g/crypto/rand/rand_crng_test.c.crng-test openssl-1.1.1g/cr
 +{
 +    OPENSSL_secure_clear_free(out, outlen);
 +}
-diff -up openssl-1.1.1g/crypto/rand/rand_local.h.crng-test openssl-1.1.1g/crypto/rand/rand_local.h
---- openssl-1.1.1g/crypto/rand/rand_local.h.crng-test	2020-04-23 13:30:45.470397250 +0200
-+++ openssl-1.1.1g/crypto/rand/rand_local.h	2020-04-23 13:30:45.864389819 +0200
+Index: openssl-1.1.1g/crypto/rand/rand_local.h
+===================================================================
+--- openssl-1.1.1g.orig/crypto/rand/rand_local.h	2020-04-21 15:59:25.552654754 +0200
++++ openssl-1.1.1g/crypto/rand/rand_local.h	2020-04-21 15:59:27.208663772 +0200
 @@ -33,7 +33,15 @@
  # define MASTER_RESEED_TIME_INTERVAL             (60*60)   /* 1 hour */
  # define SLAVE_RESEED_TIME_INTERVAL              (7*60)    /* 7 minutes */
@@ -209,27 +232,10 @@ diff -up openssl-1.1.1g/crypto/rand/rand_local.h.crng-test openssl-1.1.1g/crypto
 +int rand_crngt_single_init(void);
 +
  #endif
-diff -up openssl-1.1.1g/include/crypto/rand.h.crng-test openssl-1.1.1g/include/crypto/rand.h
---- openssl-1.1.1g/include/crypto/rand.h.crng-test	2020-04-23 13:30:45.824390573 +0200
-+++ openssl-1.1.1g/include/crypto/rand.h	2020-04-23 13:30:45.864389819 +0200
-@@ -49,6 +49,14 @@ size_t rand_drbg_get_additional_data(RAN
- 
- void rand_drbg_cleanup_additional_data(RAND_POOL *pool, unsigned char *out);
- 
-+/* CRNG test entropy filter callbacks. */
-+size_t rand_crngt_get_entropy(RAND_DRBG *drbg,
-+                              unsigned char **pout,
-+                              int entropy, size_t min_len, size_t max_len,
-+                              int prediction_resistance);
-+void rand_crngt_cleanup_entropy(RAND_DRBG *drbg,
-+                                unsigned char *out, size_t outlen);
-+
- /*
-  * RAND_POOL functions
-  */
-diff -up openssl-1.1.1g/test/drbgtest.c.crng-test openssl-1.1.1g/test/drbgtest.c
---- openssl-1.1.1g/test/drbgtest.c.crng-test	2020-04-21 14:22:39.000000000 +0200
-+++ openssl-1.1.1g/test/drbgtest.c	2020-04-23 13:30:45.865389800 +0200
+Index: openssl-1.1.1g/test/drbgtest.c
+===================================================================
+--- openssl-1.1.1g.orig/test/drbgtest.c	2020-04-21 15:59:25.552654754 +0200
++++ openssl-1.1.1g/test/drbgtest.c	2020-04-21 15:59:27.208663772 +0200
 @@ -150,6 +150,31 @@ static size_t kat_nonce(RAND_DRBG *drbg,
      return t->noncelen;
  }
