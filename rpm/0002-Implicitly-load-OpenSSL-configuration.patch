@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Mon, 30 Sep 2024 09:18:21 +0300
+Subject: [PATCH] Implicitly load OpenSSL configuration
+
+For applications to load the OpenSSL configuration they have to call
+OPENSSL_config(). Many applications/libraries don't do so.
+Instead we can pass -DOPENSSL_LOAD_CONF in the pkgconfig files
+so the needed operation becomes implicit the next time such apps
+are recompiled, see OPENSSL_config(3).
+---
+ Configurations/unix-Makefile.tmpl | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
+index 7a71ee9bf3b968c3b0634f38be18529ef1055318..c7ff3e3c6e06ab55b7251d134339d9277c1b42a7 100644
+--- a/Configurations/unix-Makefile.tmpl
++++ b/Configurations/unix-Makefile.tmpl
+@@ -1453,7 +1453,7 @@ libcrypto.pc:
+ 	    echo 'Version: '$(VERSION); \
+ 	    echo 'Libs: -L$${libdir} -lcrypto'; \
+ 	    echo 'Libs.private: $(LIB_EX_LIBS)'; \
+-	    echo 'Cflags: -I$${includedir}' ) > libcrypto.pc
++	    echo 'Cflags: -DOPENSSL_LOAD_CONF -I$${includedir}' ) > libcrypto.pc
+ 
+ libssl.pc:
+ 	@ ( echo 'prefix=$(INSTALLTOP)'; \
+@@ -1470,7 +1470,7 @@ libssl.pc:
+ 	    echo 'Version: '$(VERSION); \
+ 	    echo 'Requires.private: libcrypto'; \
+ 	    echo 'Libs: -L$${libdir} -lssl'; \
+-	    echo 'Cflags: -I$${includedir}' ) > libssl.pc
++	    echo 'Cflags: -DOPENSSL_LOAD_CONF -I$${includedir}' ) > libssl.pc
+ 
+ openssl.pc:
+ 	@ ( echo 'prefix=$(INSTALLTOP)'; \
