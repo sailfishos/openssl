@@ -1,3 +1,3 @@
-[submodule "openssl"]
-	path = openssl
+[submodule "upstream"]
+	path = upstream
 	url = https://github.com/sailfishos-mirror/openssl.git
