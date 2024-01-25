@@ -1,0 +1,37 @@
+From 0e55c3ab8d702ffc897c9beb51d19b14b7896182 Mon Sep 17 00:00:00 2001
+From: "Dr. David von Oheimb" <David.von.Oheimb@siemens.com>
+Date: Tue, 11 May 2021 12:59:03 +0200
+Subject: [PATCH] Makefile: Call mknum.pl on 'make ordinals' only if needed
+
+Reviewed-by: Richard Levitte <levitte@openssl.org>
+Reviewed-by: Tomas Mraz <tomas@openssl.org>
+Reviewed-by: David von Oheimb <david.von.oheimb@siemens.com>
+(Merged from https://github.com/openssl/openssl/pull/15224)
+---
+ Configurations/unix-Makefile.tmpl | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+Index: openssl-3.2.0/Configurations/unix-Makefile.tmpl
+===================================================================
+--- openssl-3.2.0.orig/Configurations/unix-Makefile.tmpl
++++ openssl-3.2.0/Configurations/unix-Makefile.tmpl
+@@ -1368,18 +1368,15 @@ renumber: build_generated
+                 --renumber \
+                 $(SSLHEADERS)
+ 
+-$(SRCDIR)/util/libcrypto.num: $(CRYPTOHEADERS) $(SRCDIR)/include/openssl/symhacks.h
++ordinals: build_generated
+ 	$(PERL) $(SRCDIR)/util/mknum.pl --version $(VERSION_NUMBER) --no-warnings \
+                 --ordinals $(SRCDIR)/util/libcrypto.num \
+                 --symhacks $(SRCDIR)/include/openssl/symhacks.h \
+                 $(CRYPTOHEADERS)
+-$(SRCDIR)/util/libssl.num: $(SSLHEADERS) $(SRCDIR)/include/openssl/symhacks.h
+ 	$(PERL) $(SRCDIR)/util/mknum.pl --version $(VERSION_NUMBER) --no-warnings \
+                 --ordinals $(SRCDIR)/util/libssl.num \
+                 --symhacks $(SRCDIR)/include/openssl/symhacks.h \
+                 $(SSLHEADERS)
+-.PHONY: ordinals
+-ordinals: build_generated $(SRCDIR)/util/libcrypto.num $(SRCDIR)/util/libssl.num
+ 
+ test_ordinals:
+ 	$(MAKE) run_tests TESTS=test_ordinals
