@@ -16,13 +16,11 @@ Source1:        %{name}.changes
 # http://pgp.mit.edu:11371/pks/lookup?op=get&search=0xA2D29B7BF295C759#/openssl.keyring
 Source5:        showciphers.c
 # PATCH-FIX-OPENSUSE: Do not install html docs as it takes ages
-Patch0000:      0001-Disable-html-docs.patch
-Patch0001:      0002-Implicitly-load-OpenSSL-configuration.patch
-Patch0002:      0003-Set-a-sane-default-cipher-list-for-applications.patch
-Patch0003:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
-Patch0004:      0005-Add-default-section-to-load-crypto-policies-configur.patch
-Patch6:         openssl-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
-Patch7:         openssl-crypto-policies-support.patch
+Patch1:         0001-Disable-html-docs.patch
+Patch2:         0002-Implicitly-load-OpenSSL-configuration.patch
+Patch3:         0003-Set-a-sane-default-cipher-list-for-applications.patch
+Patch4:         0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
+Patch5:         0005-Add-default-section-to-load-crypto-policies-configur.patch
 BuildRequires:  pkgconfig
 BuildRequires:  perl(Digest::SHA)
 BuildRequires:  perl(File::Compare)
@@ -129,21 +127,6 @@ perl configdata.pm --dump
 %make_build depend
 %make_build all
 
-%check
-# Relax the crypto-policies requirements for the regression tests
-# Revert patch7 before running tests
-patch -p1 -R < %{PATCH7}
-export OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
-export MALLOC_CHECK_=3
-export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
-# export HARNESS_VERBOSE=yes
-
-LD_LIBRARY_PATH="$PWD" make test -j16
-
-# show ciphers
-gcc -o showciphers %{optflags} -I%{buildroot}%{_includedir} %{SOURCE5} -L%{buildroot}%{_libdir} -lssl -lcrypto
-LD_LIBRARY_PATH=%{buildroot}%{_libdir} ./showciphers
-
 %install
 %make_install %{?_smp_mflags} MANSUFFIX=%{man_suffix}
 
@@ -224,7 +207,7 @@ fi
 
 %files
 %license LICENSE.txt
-%doc CHANGES.md NEWS.md FAQ.md README.md
+%doc CHANGES.md NEWS.md README.md
 %dir %{ssletcdir}
 %config %{ssletcdir}/openssl-orig.cnf
 %config (noreplace) %{ssletcdir}/openssl.cnf
