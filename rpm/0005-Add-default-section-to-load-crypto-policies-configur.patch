@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Mon, 30 Sep 2024 10:23:33 +0300
+Subject: [PATCH] Add default section to load crypto-policies configuration for
+ TLS.
+
+It needs to be reverted before running tests.
+---
+ apps/openssl.cnf | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/apps/openssl.cnf b/apps/openssl.cnf
+index 2833b6f30bc6b51718c08a1dbe8341b39abd57d1..d2957183d11ed6a2bc8eab592918d73e18eb2e85 100644
+--- a/apps/openssl.cnf
++++ b/apps/openssl.cnf
+@@ -52,6 +52,8 @@ tsa_policy3 = 1.2.3.4.5.7
+ 
+ [openssl_init]
+ providers = provider_sect
++# Load default TLS policy configuration
++ssl_conf = ssl_module
+ 
+ # List of providers to load
+ [provider_sect]
+@@ -71,6 +73,13 @@ default = default_sect
+ [default_sect]
+ # activate = 1
+ 
++[ ssl_module ]
++
++system_default = crypto_policy
++
++[ crypto_policy ]
++
++.include = /etc/crypto-policies/back-ends/opensslcnf.config
+ 
+ ####################################################################
+ [ ca ]
