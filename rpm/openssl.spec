@@ -25,7 +25,7 @@ Patch0001:      0001-Disable-html-docs.patch
 Patch0002:      0002-Implicitly-load-OpenSSL-configuration.patch
 Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
-Patch0005:      0005-Add-default-section-to-load-crypto-policies-configur.patch
+#Patch0005:      0005-Add-default-section-to-load-crypto-policies-configur.patch
 BuildRequires:  pkgconfig
 BuildRequires:  perl(Digest::SHA)
 BuildRequires:  perl(File::Compare)
