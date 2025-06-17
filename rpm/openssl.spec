@@ -3,7 +3,6 @@
 %define ssletcdir %{_sysconfdir}/pki/tls
 %define sover 3
 %define _rname openssl
-%define man_suffix 3ssl
 Name:           openssl
 Version:        3.2.3
 Release:        0
@@ -20,8 +19,6 @@ Source5:        showciphers.c
 # $ git format-patch -N --zero-commit --no-signature --full-index openssl-3.2.3..sailfish/openssl-3.2.3 -o ../rpm
 # cd rpm
 # $ i=1; for j in 00*patch; do printf "Patch%04d: %s\n" $i $j; i=$((i+1));done
-# PATCH-FIX-OPENSUSE: Do not install html docs as it takes ages
-Patch0001:      0001-Disable-html-docs.patch
 Patch0002:      0002-Implicitly-load-OpenSSL-configuration.patch
 Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
@@ -37,7 +34,6 @@ BuildRequires:  perl(IPC::Cmd)
 BuildRequires:  perl(IPC::Cmd)
 BuildRequires:  perl(Math::BigInt)
 BuildRequires:  perl(Module::Load::Conditional)
-BuildRequires:  perl(Pod::Html)
 BuildRequires:  perl(Test::Harness)
 BuildRequires:  perl(Test::More)
 BuildRequires:  perl(Time::HiRes)
@@ -78,15 +74,6 @@ Obsoletes:      openssl-devel < %{version}
 This subpackage contains header files for developing applications
 that want to make use of the OpenSSL C API.
 
-%package doc
-Summary:        Manpages and additional documentation for openssl
-Conflicts:      libopenssl-3-devel < %{version}-%{release}
-BuildArch:      noarch
-
-%description doc
-This package contains optional documentation provided in addition to
-this package's base documentation.
-
 %prep
 %autosetup -p1 -n %{name}-%{version}/upstream
 
@@ -99,7 +86,7 @@ export MACHINE=armv6l
 %endif
 
 ./Configure \
-    no-mdc2 no-ec2m no-sm2 no-sm4 \
+    no-mdc2 no-ec2m no-sm2 no-sm4 no-docs \
     enable-rfc3779 enable-camellia enable-seed \
 %ifarch x86_64 aarch64 ppc64le
     enable-ec_nistp_64_gcc_128 \
@@ -151,7 +138,7 @@ LD_LIBRARY_PATH=%{buildroot}%{_libdir} ./showciphers
 %endif
 
 %install
-%make_install %{?_smp_mflags} MANSUFFIX=%{man_suffix}
+%make_install %{?_smp_mflags}
 
 rename so.%{sover} so.%{version} %{buildroot}%{_libdir}/*.so.%{sover}
 for lib in %{buildroot}%{_libdir}/*.so.%{version} ; do
@@ -171,20 +158,8 @@ rm -f %{buildroot}%{ssletcdir}/ct_log_list.cnf.dist
 cp %{buildroot}%{ssletcdir}/openssl.cnf %{buildroot}%{ssletcdir}/openssl-orig.cnf
 
 ln -sf ./%{_rname} %{buildroot}/%{_includedir}/ssl
-mkdir %{buildroot}/%{_datadir}/ssl
+mkdir -p %{buildroot}/%{_datadir}/ssl
 mv %{buildroot}/%{ssletcdir}/misc %{buildroot}/%{_datadir}/ssl/
-
-# Avoid file conflicts with man pages from other packages
-pushd %{buildroot}/%{_mandir}
-find . -type f -exec chmod 644 {} +
-mv man5/config.5%{man_suffix} man5/openssl.cnf.5
-popd
-
-# Do not install demo scripts executable under /usr/share/doc
-find demos -type f -perm /111 -exec chmod 644 {} +
-
-# Place showciphers.c for %%doc macro
-cp %{SOURCE5} .
 
 # Unused depends on perl curl bindings which we don't have
 rm %{buildroot}%{_datadir}/ssl/misc/tsget.pl
@@ -222,12 +197,6 @@ fi
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
 
-%files doc
-%doc README.md
-%doc doc/html/* doc/HOWTO/* demos
-%doc showciphers.c
-%{_mandir}/man3/*
-
 %files
 %license LICENSE.txt
 %doc CHANGES.md NEWS.md README.md
@@ -240,8 +209,5 @@ fi
 %{_datadir}/ssl/misc
 %{_bindir}/%{_rname}
 %{_bindir}/c_rehash
-%{_mandir}/man1/*
-%{_mandir}/man5/*
-%{_mandir}/man7/*
 
 %changelog
