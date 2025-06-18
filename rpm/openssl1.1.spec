@@ -5,20 +5,10 @@ Name: openssl1.1
 Version: 1.1.1w
 Release: 1
 
-# We have to remove certain patented algorithms from the openssl source
-# tarball with the hobble-openssl script which is included below.
-# The original openssl upstream tarball cannot be shipped in the .src.rpm.
 Source: %{name}-%{version}.tar.gz
 Source1: hobble-openssl
-Source2: Makefile.certificate
-Source6: make-dummy-cert
-Source7: renew-dummy-cert
-Source9: opensslconf-new.h
-Source10: opensslconf-new-warning.h
-Source11: README.FIPS
 Source12: ec_curve.c
 Source13: ectest.c
-Source14: fixpatch
 # Build changes
 Patch1: openssl-1.1.1-build.patch
 Patch2: openssl-1.1.1-defaults.patch
@@ -225,9 +215,6 @@ export CPPFLAGS="$CPPFLAGS -D_FILE_OFFSET_BITS=64"
 	shared  ${sslarch} $RPM_OPT_FLAGS '-DDEVRANDOM="\"/dev/urandom\""'
 
 %make_build
-
-# Overwrite FIPS README
-cp -f %{SOURCE11} .
 
 # Clean up the .pc files
 for i in libcrypto.pc libssl.pc openssl.pc ; do

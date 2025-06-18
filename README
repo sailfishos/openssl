@@ -1,4 +1,0 @@
-The OpenSSL source contains references to patented algorithms that cannot
-be included in published sources. It has been extracted from tar into openssl/
-and Fedora's 'hobble-openssl' script was executed on it to remove these
-references. If you update it, be sure to run that script again before checkin.
