@@ -4,7 +4,7 @@
 %define sover 3
 %define _rname openssl
 Name:           openssl
-Version:        3.2.3
+Version:        3.2.4
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
 License:        Apache-2.0
