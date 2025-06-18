@@ -56,6 +56,8 @@ Summary:        Secure Sockets and Transport Layer Security
 Requires:       ca-certificates
 Conflicts:      %{name} < %{version}-%{release}
 # Requires:       crypto-policies
+# Require previous compatibility version so rpm does not break during update
+Requires:       openssl1.1
 
 %description libs
 OpenSSL is a software library to be used in applications that need to
