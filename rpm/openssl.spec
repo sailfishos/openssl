@@ -37,7 +37,6 @@ BuildRequires:  perl(Test::More)
 %endif
 Requires:       openssl-libs = %{version}-%{release}
 Provides:       ssl
-# Requires:       crypto-policies
 
 %description
 OpenSSL is a software library to be used in applications that need to
@@ -48,6 +47,7 @@ OpenSSL contains an implementation of the SSL and TLS protocols.
 %package libs
 Summary:        Secure Sockets and Transport Layer Security
 Requires:       ca-certificates
+Requires(post): diffutils
 Conflicts:      %{name} < %{version}-%{release}
 # Requires:       crypto-policies
 # Require previous compatibility version so rpm does not break during update
@@ -152,7 +152,8 @@ ln -sf ./%{_rname} %{buildroot}/%{_includedir}/ssl
 rm -r %{buildroot}/%{ssletcdir}/misc
 rm %{buildroot}%{_bindir}/c_rehash
 
-%post -p /bin/sh
+%post libs -p /bin/sh
+/sbin/ldconfig
 if [ "$1" -gt 1 ] ; then
     # Check if the packaged default config file for openssl-3, called openssl.cnf,
     # is the original or if it has been modified and alert the user in that case
@@ -165,21 +166,20 @@ if [ "$1" -gt 1 ] ; then
     fi
 fi
 
-%post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
 %files
 %license LICENSE.txt
 %doc NEWS.md README.md
+%{_bindir}/%{_rname}
+
+%files libs
+%license LICENSE.txt
 %dir %{ssletcdir}
 %config %{ssletcdir}/openssl-orig.cnf
 %config (noreplace) %{ssletcdir}/openssl.cnf
 %config (noreplace) %{ssletcdir}/ct_log_list.cnf
 %attr(700,root,root) %{ssletcdir}/private
-%{_bindir}/%{_rname}
-
-%files libs
-%license LICENSE.txt
 %attr(0755,root,root) %{_libdir}/libssl.so.%{version}
 %{_libdir}/libssl.so.%{sover}
 %attr(0755,root,root) %{_libdir}/libcrypto.so.%{version}
