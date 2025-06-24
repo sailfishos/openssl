@@ -3,22 +3,17 @@
 %define ssletcdir %{_sysconfdir}/pki/tls
 %define sover 3
 %define _rname openssl
+
 Name:           openssl
 Version:        3.2.4
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
-License:        Apache-2.0
-URL:            https://www.openssl.org/
+License:        ASL 2.0
+URL:            https://github.com/sailfishos/openssl/
 Source:         %{name}-%{version}.tar.gz
-# to get mtime of file:
-Source1:        %{name}.changes
 # https://www.openssl.org/about/
 # http://pgp.mit.edu:11371/pks/lookup?op=get&search=0xA2D29B7BF295C759#/openssl.keyring
 Source5:        showciphers.c
-# Example commands how to regenerate the patchset
-# $ git format-patch -N --zero-commit --no-signature --full-index openssl-3.2.3..sailfish/openssl-3.2.3 -o ../rpm
-# cd rpm
-# $ i=1; for j in 00*patch; do printf "Patch%04d: %s\n" $i $j; i=$((i+1));done
 Patch0002:      0002-Implicitly-load-OpenSSL-configuration.patch
 Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
@@ -31,16 +26,14 @@ BuildRequires:  perl(File::Copy)
 BuildRequires:  perl(File::Temp)
 BuildRequires:  perl(FindBin)
 BuildRequires:  perl(IPC::Cmd)
-BuildRequires:  perl(IPC::Cmd)
-BuildRequires:  perl(Math::BigInt)
-BuildRequires:  perl(Module::Load::Conditional)
-BuildRequires:  perl(Test::Harness)
-BuildRequires:  perl(Test::More)
-BuildRequires:  perl(Time::HiRes)
 BuildRequires:  perl(bigint)
 BuildRequires:  perl(lib)
 BuildRequires:  pkgconfig(zlib)
-Requires:       openssl
+%if %{with checks}
+BuildRequires:  perl(Math::BigInt)
+BuildRequires:  perl(Test::Harness)
+BuildRequires:  perl(Test::More)
+%endif
 Requires:       openssl-libs = %{version}-%{release}
 Provides:       ssl
 # Requires:       crypto-policies
@@ -70,7 +63,6 @@ Summary:        Development files for OpenSSL
 Requires:       openssl-libs = %{version}
 Requires:       pkgconfig(zlib)
 Recommends:     %{name} = %{version}
-Obsoletes:      openssl-devel < %{version}
 
 %description devel
 This subpackage contains header files for developing applications
@@ -80,12 +72,6 @@ that want to make use of the OpenSSL C API.
 %autosetup -p1 -n %{name}-%{version}/upstream
 
 %build
-%ifarch armv5el armv5tel
-export MACHINE=armv5el
-%endif
-%ifarch armv6l armv6hl
-export MACHINE=armv6l
-%endif
 
 ./Configure \
     no-mdc2 no-ec2m no-sm2 no-sm4 no-docs \
@@ -182,6 +168,19 @@ fi
 %post libs -p /sbin/ldconfig
 %postun libs -p /sbin/ldconfig
 
+%files
+%license LICENSE.txt
+%doc NEWS.md README.md
+%dir %{ssletcdir}
+%config %{ssletcdir}/openssl-orig.cnf
+%config (noreplace) %{ssletcdir}/openssl.cnf
+%config (noreplace) %{ssletcdir}/ct_log_list.cnf
+%attr(700,root,root) %{ssletcdir}/private
+%dir %{_datadir}/ssl
+%{_datadir}/ssl/misc
+%{_bindir}/%{_rname}
+%{_bindir}/c_rehash
+
 %files libs
 %license LICENSE.txt
 %attr(0755,root,root) %{_libdir}/libssl.so.%{version}
@@ -198,18 +197,3 @@ fi
 %{_includedir}/ssl
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
-
-%files
-%license LICENSE.txt
-%doc CHANGES.md NEWS.md README.md
-%dir %{ssletcdir}
-%config %{ssletcdir}/openssl-orig.cnf
-%config (noreplace) %{ssletcdir}/openssl.cnf
-%config (noreplace) %{ssletcdir}/ct_log_list.cnf
-%attr(700,root,root) %{ssletcdir}/private
-%dir %{_datadir}/ssl
-%{_datadir}/ssl/misc
-%{_bindir}/%{_rname}
-%{_bindir}/c_rehash
-
-%changelog
