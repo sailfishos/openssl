@@ -147,11 +147,10 @@ rm -f %{buildroot}%{ssletcdir}/ct_log_list.cnf.dist
 cp %{buildroot}%{ssletcdir}/openssl.cnf %{buildroot}%{ssletcdir}/openssl-orig.cnf
 
 ln -sf ./%{_rname} %{buildroot}/%{_includedir}/ssl
-mkdir -p %{buildroot}/%{_datadir}/ssl
-mv %{buildroot}/%{ssletcdir}/misc %{buildroot}/%{_datadir}/ssl/
 
-# Unused depends on perl curl bindings which we don't have
-rm %{buildroot}%{_datadir}/ssl/misc/tsget.pl
+# Remove unused perl scripts
+rm -r %{buildroot}/%{ssletcdir}/misc
+rm %{buildroot}%{_bindir}/c_rehash
 
 %post -p /bin/sh
 if [ "$1" -gt 1 ] ; then
@@ -177,10 +176,7 @@ fi
 %config (noreplace) %{ssletcdir}/openssl.cnf
 %config (noreplace) %{ssletcdir}/ct_log_list.cnf
 %attr(700,root,root) %{ssletcdir}/private
-%dir %{_datadir}/ssl
-%{_datadir}/ssl/misc
 %{_bindir}/%{_rname}
-%{_bindir}/c_rehash
 
 %files libs
 %license LICENSE.txt
