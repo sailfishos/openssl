@@ -14,6 +14,7 @@ Source:         %{name}-%{version}.tar.gz
 # https://www.openssl.org/about/
 # http://pgp.mit.edu:11371/pks/lookup?op=get&search=0xA2D29B7BF295C759#/openssl.keyring
 Source5:        showciphers.c
+Patch0001:      0001-Remove-build-date-for-reproducibility.patch
 Patch0002:      0002-Implicitly-load-OpenSSL-configuration.patch
 Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch

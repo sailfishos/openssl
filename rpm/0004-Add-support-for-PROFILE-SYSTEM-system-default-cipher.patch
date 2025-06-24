@@ -16,7 +16,7 @@ Subject: [PATCH] Add support for PROFILE=SYSTEM system default cipherlist
  8 files changed, 110 insertions(+), 14 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
-index c7ff3e3c6e06ab55b7251d134339d9277c1b42a7..a47d3a382d77c022c8d0e7665b2e053fd1f868ce 100644
+index d07ce87bee2a24768d6998ad722145f23399c2da..dacde88b13f23dde39c377adfe291db0a5327238 100644
 --- a/Configurations/unix-Makefile.tmpl
 +++ b/Configurations/unix-Makefile.tmpl
 @@ -324,6 +324,10 @@ MANDIR=$(INSTALLTOP)/share/man
@@ -274,7 +274,7 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
  
  char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index cf52b317cf4b03f6a3417db2eacb74d5cf6bd49e..baac6057085bee2f54e7164b6e6e1c32119bbfb2 100644
+index a6695ca4a03476efd50fe457c8a6f5c8450a68fa..af8c193e79e8015969b38f2ed13b70d23c85a1ab 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -670,7 +670,7 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
@@ -286,7 +286,7 @@ index cf52b317cf4b03f6a3417db2eacb74d5cf6bd49e..baac6057085bee2f54e7164b6e6e1c32
      if ((sk == NULL) || (sk_SSL_CIPHER_num(sk) <= 0)) {
          ERR_raise(ERR_LIB_SSL, SSL_R_SSL_LIBRARY_HAS_NO_CIPHERS);
          return 0;
-@@ -3955,7 +3955,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
+@@ -3960,7 +3960,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
      if (!ssl_create_cipher_list(ret,
                                  ret->tls13_ciphersuites,
                                  &ret->cipher_list, &ret->cipher_list_by_id,

@@ -13,7 +13,7 @@ are recompiled, see OPENSSL_config(3).
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
-index 7a71ee9bf3b968c3b0634f38be18529ef1055318..c7ff3e3c6e06ab55b7251d134339d9277c1b42a7 100644
+index 7e9de3cf3c7fc02a82d5aacaf7f6c8fbef8126fa..d07ce87bee2a24768d6998ad722145f23399c2da 100644
 --- a/Configurations/unix-Makefile.tmpl
 +++ b/Configurations/unix-Makefile.tmpl
 @@ -1453,7 +1453,7 @@ libcrypto.pc:
