@@ -89,7 +89,7 @@ that want to make use of the OpenSSL C API.
     -Wa,--noexecstack \
     -Wl,-z,relro,-z,now \
     -fno-common \
-    -DTERMIO \
+    -DTERMIOS \
     -DPURIFY \
     -D_GNU_SOURCE \
     -DOPENSSL_NO_BUF_FREELISTS \
