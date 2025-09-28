@@ -5,7 +5,7 @@
 %define _rname openssl
 
 Name:           openssl
-Version:        3.2.4
+Version:        3.2.5
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
 License:        ASL 2.0
