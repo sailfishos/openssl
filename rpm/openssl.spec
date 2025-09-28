@@ -5,7 +5,7 @@
 %define _rname openssl
 
 Name:           openssl
-Version:        3.2.4
+Version:        3.2.5
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
 License:        ASL 2.0
@@ -89,7 +89,7 @@ that want to make use of the OpenSSL C API.
     -Wa,--noexecstack \
     -Wl,-z,relro,-z,now \
     -fno-common \
-    -DTERMIO \
+    -DTERMIOS \
     -DPURIFY \
     -D_GNU_SOURCE \
     -DOPENSSL_NO_BUF_FREELISTS \
