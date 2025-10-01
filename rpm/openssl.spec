@@ -5,7 +5,7 @@
 %define _rname openssl
 
 Name:           openssl
-Version:        3.2.5
+Version:        3.2.6
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
 License:        ASL 2.0
@@ -29,6 +29,7 @@ BuildRequires:  perl(FindBin)
 BuildRequires:  perl(IPC::Cmd)
 BuildRequires:  perl(bigint)
 BuildRequires:  perl(lib)
+BuildRequires:  perl(Time::Piece)
 BuildRequires:  pkgconfig(zlib)
 %if %{with checks}
 BuildRequires:  perl(Math::BigInt)

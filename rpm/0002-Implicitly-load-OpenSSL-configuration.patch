@@ -13,10 +13,10 @@ are recompiled, see OPENSSL_config(3).
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
-index 7e9de3cf3c7fc02a82d5aacaf7f6c8fbef8126fa..d07ce87bee2a24768d6998ad722145f23399c2da 100644
+index c7178252b25c826bfce300a3585228b7242faf8a..487aaf06958ff5b17611dd0250f11884aaa5234e 100644
 --- a/Configurations/unix-Makefile.tmpl
 +++ b/Configurations/unix-Makefile.tmpl
-@@ -1453,7 +1453,7 @@ libcrypto.pc:
+@@ -1464,7 +1464,7 @@ libcrypto.pc:
  	    echo 'Version: '$(VERSION); \
  	    echo 'Libs: -L$${libdir} -lcrypto'; \
  	    echo 'Libs.private: $(LIB_EX_LIBS)'; \
@@ -25,7 +25,7 @@ index 7e9de3cf3c7fc02a82d5aacaf7f6c8fbef8126fa..d07ce87bee2a24768d6998ad722145f2
  
  libssl.pc:
  	@ ( echo 'prefix=$(INSTALLTOP)'; \
-@@ -1470,7 +1470,7 @@ libssl.pc:
+@@ -1481,7 +1481,7 @@ libssl.pc:
  	    echo 'Version: '$(VERSION); \
  	    echo 'Requires.private: libcrypto'; \
  	    echo 'Libs: -L$${libdir} -lssl'; \
