@@ -8,7 +8,7 @@ Subject: [PATCH] Remove build date for reproducibility
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/util/mkbuildinf.pl b/util/mkbuildinf.pl
-index 799ed3cdcd097233cc0365a12bed7a4f7a95fd98..56f6b4e0479e5a2e31f88b839aedee1e5d36e694 100755
+index 799ed3cdcd..56f6b4e047 100755
 --- a/util/mkbuildinf.pl
 +++ b/util/mkbuildinf.pl
 @@ -32,7 +32,7 @@ print <<"END_OUTPUT";

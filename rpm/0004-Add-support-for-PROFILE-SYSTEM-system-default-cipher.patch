@@ -1,7 +1,7 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 736d709ec194b3a763e004696df22792c62a11fc Mon Sep 17 00:00:00 2001
 From: Tomas Mraz <tmraz@fedoraproject.org>
 Date: Thu, 24 Sep 2020 10:16:46 +0200
-Subject: [PATCH] Add support for PROFILE=SYSTEM system default cipherlist
+Subject: Add support for PROFILE=SYSTEM system default cipherlist
 
 (was openssl-1.1.1-system-cipherlist.patch)
 ---
@@ -16,10 +16,10 @@ Subject: [PATCH] Add support for PROFILE=SYSTEM system default cipherlist
  8 files changed, 110 insertions(+), 14 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
-index 487aaf06958ff5b17611dd0250f11884aaa5234e..d74407edd60fb910954252e92842c08f2b651228 100644
+index 78be4a3199..ae2a66a876 100644
 --- a/Configurations/unix-Makefile.tmpl
 +++ b/Configurations/unix-Makefile.tmpl
-@@ -335,6 +335,10 @@ MANDIR=$(INSTALLTOP)/share/man
+@@ -355,6 +355,10 @@ MANDIR=$(INSTALLTOP)/share/man
  DOCDIR=$(INSTALLTOP)/share/doc/$(BASENAME)
  HTMLDIR=$(DOCDIR)/html
  
@@ -30,7 +30,7 @@ index 487aaf06958ff5b17611dd0250f11884aaa5234e..d74407edd60fb910954252e92842c08f
  # MANSUFFIX is for the benefit of anyone who may want to have a suffix
  # appended after the manpage file section number.  "ssl" is popular,
  # resulting in files such as config.5ssl rather than config.5.
-@@ -358,6 +362,7 @@ CC=$(CROSS_COMPILE){- $config{CC} -}
+@@ -378,6 +382,7 @@ CC=$(CROSS_COMPILE){- $config{CC} -}
  CXX={- $config{CXX} ? "\$(CROSS_COMPILE)$config{CXX}" : '' -}
  CPPFLAGS={- our $cppflags1 = join(" ",
                                    (map { "-D".$_} @{$config{CPPDEFINES}}),
@@ -39,7 +39,7 @@ index 487aaf06958ff5b17611dd0250f11884aaa5234e..d74407edd60fb910954252e92842c08f
                                    @{$config{CPPFLAGS}}) -}
  CFLAGS={- join(' ', @{$config{CFLAGS}}) -}
 diff --git a/Configure b/Configure
-index d8a109a0b63d7f47159c32398a07dcd97bde3f7f..f51740cc1207f034fbf7f638350eda00d777cf36 100755
+index 499585438a..035c6aa81d 100755
 --- a/Configure
 +++ b/Configure
 @@ -27,7 +27,7 @@ use OpenSSL::config;
@@ -47,7 +47,7 @@ index d8a109a0b63d7f47159c32398a07dcd97bde3f7f..f51740cc1207f034fbf7f638350eda00
  $SIG{__DIE__} = \&death_handler;
  
 -my $usage="Usage: Configure [no-<feature> ...] [enable-<feature> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]thread-pool] [[no-]default-thread-pool] [[no-]shared] [[no-]zlib|zlib-dynamic] [no-asm] [no-egd] [sctp] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--config=FILE] os/compiler[:flags]\n";
-+my $usage="Usage: Configure [no-<feature> ...] [enable-<feature> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]thread-pool] [[no-]default-thread-pool] [[no-]shared] [[no-]zlib|zlib-dynamic] [no-asm] [no-egd] [sctp] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--system-ciphers-file=SYSTEMCIPHERFILE] [--with-xxx[=vvv]] [--config=FILE] os/compiler[:flags]\n";
++my $usage="Usage: Configure [no-<feature> ...] [enable-<feature> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]thread-pool] [[no-]default-thread-pool] [[no-]shared] [[no-]zlib|zlib-dynamic] [no-asm] [no-egd] [sctp] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--system-ciphers-file=SYSTEMCIPHERFILE]  [--with-xxx[=vvv]] [--config=FILE] os/compiler[:flags]\n";
  
  my $banner = <<"EOF";
  
@@ -62,7 +62,7 @@ index d8a109a0b63d7f47159c32398a07dcd97bde3f7f..f51740cc1207f034fbf7f638350eda00
  # --banner=".." Output specified text instead of default completion banner
  #
  # -w            Don't wait after showing a Configure warning
-@@ -394,6 +398,7 @@ $config{prefix}="";
+@@ -409,6 +413,7 @@ $config{prefix}="";
  $config{openssldir}="";
  $config{processor}="";
  $config{libdir}="";
@@ -70,7 +70,7 @@ index d8a109a0b63d7f47159c32398a07dcd97bde3f7f..f51740cc1207f034fbf7f638350eda00
  my $auto_threads=1;    # enable threads automatically? true by default
  my $default_ranlib;
  
-@@ -1048,6 +1053,10 @@ while (@argvcopy)
+@@ -1105,6 +1110,10 @@ while (@argvcopy)
                          die "FIPS key too long (64 bytes max)\n"
                             if length $1 > 64;
                          }
@@ -81,11 +81,40 @@ index d8a109a0b63d7f47159c32398a07dcd97bde3f7f..f51740cc1207f034fbf7f638350eda00
                  elsif (/^--banner=(.*)$/)
                          {
                          $banner = $1 . "\n";
+#diff --git a/apps/openssl.cnf b/apps/openssl.cnf
+#index abace0ea7f..f625901e25 100644
+#--- a/apps/openssl.cnf
+#+++ b/apps/openssl.cnf
+#@@ -52,6 +52,12 @@ tsa_policy3 = 1.2.3.4.5.7
+# 
+# [openssl_init]
+# providers = provider_sect
+#+# Load default TLS policy configuration
+#+ssl_conf = ssl_module
+#+alg_section = evp_properties
+#+
+#+[ evp_properties ]
+#+# This section is intentionally added empty here to be tuned on particular systems
+# 
+# # List of providers to load
+# [provider_sect]
+#@@ -71,6 +77,11 @@ default = default_sect
+# [default_sect]
+# # activate = 1
+# 
+#+[ ssl_module ]
+#+system_default = crypto_policy
+#+
+#+[ crypto_policy ]
+#+.include = /etc/crypto-policies/back-ends/opensslcnf.config
+# 
+# ####################################################################
+# [ ca ]
 diff --git a/doc/man1/openssl-ciphers.pod.in b/doc/man1/openssl-ciphers.pod.in
-index a84d2daff5a7030f0911e04a83d934d18905adb7..ceedf931f39acd0115da982c4de7ea37b65b58c7 100644
+index 69195bcdcb..a6e0ede570 100644
 --- a/doc/man1/openssl-ciphers.pod.in
 +++ b/doc/man1/openssl-ciphers.pod.in
-@@ -190,6 +190,15 @@ As of OpenSSL 1.0.0, the B<ALL> cipher suites are sensibly ordered by default.
+@@ -189,6 +189,15 @@ As of OpenSSL 1.0.0, the B<ALL> cipher suites are sensibly ordered by default.
  
  The cipher suites not enabled by B<ALL>, currently B<eNULL>.
  
@@ -102,10 +131,10 @@ index a84d2daff5a7030f0911e04a83d934d18905adb7..ceedf931f39acd0115da982c4de7ea37
  
  "High" encryption cipher suites. This currently means those with key lengths
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index f49b4b700e4a42235d297e5af5a080fd30cbf1b0..77da6a7954d6a1379cec2127a5882333c4e134bd 100644
+index f919e3ced7..2df4aa4ae6 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
-@@ -214,6 +214,11 @@ extern "C" {
+@@ -216,6 +216,11 @@ extern "C" {
   * throwing out anonymous and unencrypted ciphersuites! (The latter are not
   * actually enabled by ALL, but "ALL:RSA" would enable some of them.)
   */
@@ -116,12 +145,12 @@ index f49b4b700e4a42235d297e5af5a080fd30cbf1b0..77da6a7954d6a1379cec2127a5882333
 +# endif
  
  /* Used in SSL_set_shutdown()/SSL_get_shutdown(); */
- # define SSL_SENT_SHUTDOWN       1
+ #define SSL_SENT_SHUTDOWN 1
 diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e997455147c 100644
+index 3b14d980b8..1ec26c4346 100644
 --- a/ssl/ssl_ciph.c
 +++ b/ssl/ssl_ciph.c
-@@ -1455,6 +1455,53 @@ int SSL_set_ciphersuites(SSL *s, const char *str)
+@@ -1404,6 +1404,53 @@ int SSL_set_ciphersuites(SSL *s, const char *str)
      return ret;
  }
  
@@ -173,9 +202,9 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
 +#endif
 +
  STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
-                                              STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
-                                              STACK_OF(SSL_CIPHER) **cipher_list,
-@@ -1469,15 +1516,25 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+     STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
+     STACK_OF(SSL_CIPHER) **cipher_list,
+@@ -1418,15 +1465,25 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      CIPHER_ORDER *co_list = NULL, *head = NULL, *tail = NULL, *curr;
      const SSL_CIPHER **ca_list = NULL;
      const SSL_METHOD *ssl_method = ctx->method;
@@ -203,16 +232,16 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
  
      /*
       * To reduce the work to do we only want to process the compiled
-@@ -1499,7 +1556,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1448,7 +1505,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      if (num_of_ciphers > 0) {
          co_list = OPENSSL_malloc(sizeof(*co_list) * num_of_ciphers);
          if (co_list == NULL)
--            return NULL;          /* Failure */
+-            return NULL; /* Failure */
 +            goto err;
      }
  
      ssl_cipher_collect_ciphers(ssl_method, num_of_ciphers,
-@@ -1565,8 +1622,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1514,8 +1571,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       * in force within each class
       */
      if (!ssl_cipher_strength_sort(&head, &tail)) {
@@ -222,27 +251,27 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
      }
  
      /*
-@@ -1610,8 +1666,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1559,8 +1615,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      num_of_alias_max = num_of_ciphers + num_of_group_aliases + 1;
      ca_list = OPENSSL_malloc(sizeof(*ca_list) * num_of_alias_max);
      if (ca_list == NULL) {
 -        OPENSSL_free(co_list);
--        return NULL;          /* Failure */
+-        return NULL; /* Failure */
 +        goto err;
      }
      ssl_cipher_collect_aliases(ca_list, num_of_group_aliases,
-                                disabled_mkey, disabled_auth, disabled_enc,
-@@ -1645,8 +1700,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
-     OPENSSL_free(ca_list);      /* Not needed anymore */
+         disabled_mkey, disabled_auth, disabled_enc,
+@@ -1594,8 +1649,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+     OPENSSL_free(ca_list); /* Not needed anymore */
  
-     if (!ok) {                  /* Rule processing failure */
+     if (!ok) { /* Rule processing failure */
 -        OPENSSL_free(co_list);
 -        return NULL;
 +        goto err;
      }
  
      /*
-@@ -1654,10 +1708,13 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1603,10 +1657,13 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       * if we cannot get one.
       */
      if ((cipherstack = sk_SSL_CIPHER_new_null()) == NULL) {
@@ -258,7 +287,7 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
      /* Add TLSv1.3 ciphers first - we always prefer those if possible */
      for (i = 0; i < sk_SSL_CIPHER_num(tls13_ciphersuites); i++) {
          const SSL_CIPHER *sslc = sk_SSL_CIPHER_value(tls13_ciphersuites, i);
-@@ -1709,6 +1766,14 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1661,6 +1718,14 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      *cipher_list = cipherstack;
  
      return cipherstack;
@@ -274,32 +303,32 @@ index 80a7da3d0836c825d6c1c2f47fb9a19ecac54141..a12e74e13e2d91075c9561400eb29e99
  
  char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index 51dc6b788bb23703ee0cfc4d83a8c30befcaf1da..b0bb245fb5124faed15785b4ab978f6334bf5ac1 100644
+index ac77faa677..677b05ba64 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
-@@ -670,7 +670,7 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
-                                 ctx->tls13_ciphersuites,
-                                 &(ctx->cipher_list),
-                                 &(ctx->cipher_list_by_id),
--                                OSSL_default_cipher_list(), ctx->cert);
-+                                SSL_SYSTEM_DEFAULT_CIPHER_LIST, ctx->cert);
+@@ -678,7 +678,7 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
+         ctx->tls13_ciphersuites,
+         &(ctx->cipher_list),
+         &(ctx->cipher_list_by_id),
+-        OSSL_default_cipher_list(), ctx->cert);
++        SSL_SYSTEM_DEFAULT_CIPHER_LIST, ctx->cert);
      if ((sk == NULL) || (sk_SSL_CIPHER_num(sk) <= 0)) {
          ERR_raise(ERR_LIB_SSL, SSL_R_SSL_LIBRARY_HAS_NO_CIPHERS);
          return 0;
-@@ -3960,7 +3960,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
+@@ -4102,7 +4102,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
      if (!ssl_create_cipher_list(ret,
-                                 ret->tls13_ciphersuites,
-                                 &ret->cipher_list, &ret->cipher_list_by_id,
--                                OSSL_default_cipher_list(), ret->cert)
-+                                SSL_SYSTEM_DEFAULT_CIPHER_LIST, ret->cert)
+             ret->tls13_ciphersuites,
+             &ret->cipher_list, &ret->cipher_list_by_id,
+-            OSSL_default_cipher_list(), ret->cert)
++            SSL_SYSTEM_DEFAULT_CIPHER_LIST, ret->cert)
          || sk_SSL_CIPHER_num(ret->cipher_list) <= 0) {
          ERR_raise(ERR_LIB_SSL, SSL_R_LIBRARY_HAS_NO_CIPHERS);
          goto err;
 diff --git a/test/cipherlist_test.c b/test/cipherlist_test.c
-index c46e431b0018a431b7e2e931285d760ba11cb432..19d05e860b03cfd3f2a68e64ff7294681655bd27 100644
+index 9874e6bad6..76b6befbad 100644
 --- a/test/cipherlist_test.c
 +++ b/test/cipherlist_test.c
-@@ -261,7 +261,9 @@ end:
+@@ -260,7 +260,9 @@ end:
  
  int setup_tests(void)
  {
@@ -310,11 +339,14 @@ index c46e431b0018a431b7e2e931285d760ba11cb432..19d05e860b03cfd3f2a68e64ff729468
      ADD_TEST(test_default_cipherlist_clear);
      ADD_TEST(test_stdname_cipherlist);
 diff --git a/util/libcrypto.num b/util/libcrypto.num
-index ef978033270d7786cb162acd765310016de264cf..4d87ace7250627c200dcd08245e76ff558ce5d29 100644
+index ceb4948839..a968fd51d2 100644
 --- a/util/libcrypto.num
 +++ b/util/libcrypto.num
-@@ -5536,3 +5536,4 @@ X509_STORE_CTX_set_get_crl              5663	3_2_0	EXIST::FUNCTION:
+@@ -5536,6 +5536,7 @@ X509_STORE_CTX_set_get_crl              5663	3_2_0	EXIST::FUNCTION:
  X509_STORE_CTX_set_current_reasons      5664	3_2_0	EXIST::FUNCTION:
  OSSL_STORE_delete                       5665	3_2_0	EXIST::FUNCTION:
  BIO_ADDR_copy                           5666	3_2_0	EXIST::FUNCTION:SOCK
-+ossl_safe_getenv                        ?	3_0_0	EXIST::FUNCTION:
++ossl_safe_getenv                           ?	3_2_0	EXIST::FUNCTION:
+ OSSL_CMP_CTX_get0_geninfo_ITAVs         5667	3_3_0	EXIST::FUNCTION:CMP
+ OSSL_CMP_HDR_get0_geninfo_ITAVs         5668	3_3_0	EXIST::FUNCTION:CMP
+ OSSL_CMP_ITAV_new0_certProfile          5669	3_3_0	EXIST::FUNCTION:CMP
