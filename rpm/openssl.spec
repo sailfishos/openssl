@@ -5,7 +5,7 @@
 %define _rname openssl
 
 Name:           openssl
-Version:        3.2.6
+Version:        3.5.5
 Release:        0
 Summary:        Secure Sockets and Transport Layer Security
 License:        ASL 2.0
@@ -17,9 +17,10 @@ Source5:        showciphers.c
 Patch0001:      0001-Remove-build-date-for-reproducibility.patch
 Patch0002:      0002-Implicitly-load-OpenSSL-configuration.patch
 Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
+# Note: changes to apps/openssl.cnf are disabled because
+#       SFOS doesn't yet support crypto policies.
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
-# FIXME: Enable add crypto-policies once we have done it
-# Patch0005:      0005-Add-default-section-to-load-crypto-policies-configur.patch
+
 BuildRequires:  pkgconfig
 BuildRequires:  perl(Digest::SHA)
 BuildRequires:  perl(File::Compare)
@@ -31,11 +32,13 @@ BuildRequires:  perl(bigint)
 BuildRequires:  perl(lib)
 BuildRequires:  perl(Time::Piece)
 BuildRequires:  pkgconfig(zlib)
+
 %if %{with checks}
 BuildRequires:  perl(Math::BigInt)
 BuildRequires:  perl(Test::Harness)
 BuildRequires:  perl(Test::More)
 %endif
+
 Requires:       openssl-libs = %{version}-%{release}
 Provides:       ssl
 
@@ -75,31 +78,51 @@ that want to make use of the OpenSSL C API.
 
 %build
 
-./Configure \
-    no-mdc2 no-ec2m no-sm2 no-sm4 no-docs \
-    enable-rfc3779 enable-camellia enable-seed \
-%ifarch x86_64 aarch64 ppc64le
-    enable-ec_nistp_64_gcc_128 \
+# 30-test_aesgcm.t test fails for aarch64 in QEMU
+# https://github.com/openssl/openssl/issues/17900
+%ifarch aarch64
+rm -vf test/recipes/30-test_aesgcm.t
 %endif
-    enable-ktls \
-    zlib \
-    --prefix=%{_prefix} \
-    --libdir=%{_lib} \
-    --openssldir=%{ssletcdir} \
-    %{optflags} \
-    -Wa,--noexecstack \
-    -Wl,-z,relro,-z,now \
-    -fno-common \
-    -DTERMIOS \
-    -DPURIFY \
-    -D_GNU_SOURCE \
-    -DOPENSSL_NO_BUF_FREELISTS \
-    $(getconf LFS_CFLAGS) \
-    -Wall \
-    --with-rand-seed=getrandom \
-    %{nil}
+
+%global openssl_configure ./Configure \\\
+    no-mdc2 no-ec2m no-sm2 no-sm4 no-docs \\\
+    enable-rfc3779 enable-camellia enable-seed \\\
+    enable-ktls \\\
+    zlib \\\
+%%ifarch x86_64 aarch64 ppc64le \
+    enable-ec_nistp_64_gcc_128 \\\
+%%endif \
+    --prefix=%%{_prefix} \\\
+    --libdir=%%{_lib} \\\
+    --openssldir=%%{ssletcdir} \\\
+    %%{optflags} \\\
+    -Wa,--noexecstack \\\
+    -Wl,-z,relro,-z,now \\\
+    -fno-common \\\
+    -DTERMIOS \\\
+    -DPURIFY \\\
+    -D_GNU_SOURCE \\\
+    -DOPENSSL_NO_BUF_FREELISTS \\\
+    $(getconf LFS_CFLAGS) \\\
+    -Wall \\\
+    --with-rand-seed=getrandom \\\
+    %%{nil}
+
    # --system-ciphers-file=%{_sysconfdir}/crypto-policies/back-ends/openssl.config \
    # # FIXME requires crypto-policies which isn't packaged now
+
+%if %{with checks}
+# Save the build environment for %%check
+(
+  echo "export LANG='${LANG}'"
+  echo "export LD_AS_NEEDED='${LD_AS_NEEDED}'"
+  echo "export CFLAGS='${CFLAGS}'"
+  echo "export CXXFLAGS='${CXXFLAGS}'"
+  echo "export FFLAGS='${FFLAGS}'"
+) > "${RPM_BUILD_DIR}/.env"
+%endif
+
+%openssl_configure
 
 # Show build configuration
 perl configdata.pm --dump
@@ -120,11 +143,20 @@ export MALLOC_CHECK_=3
 export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 # export HARNESS_VERBOSE=yes
 
-LD_LIBRARY_PATH="$PWD" make test -j16
+[ -f "${RPM_BUILD_DIR}/.env" ] && source "${RPM_BUILD_DIR}/.env"
+
+%openssl_configure
+
+make build_programs_nodep build_modules_nodep link-utils %{?_smp_mflags}
+# We should use LD_LIBRARY_PATH here (and below) instead of LD_PRELOAD,
+# but it doesn't currently work right with Scratchbox2. JB#63879
+# LD_LIBRARY_PATH="$PWD" make test %%{?_smp_mflags}
+LD_PRELOAD="$PWD/libssl.so.3:$PWD/libcrypto.so.3" make run_tests %{?_smp_mflags}
 
 # show ciphers
 gcc -o showciphers %{optflags} -I%{buildroot}%{_includedir} %{SOURCE5} -L%{buildroot}%{_libdir} -lssl -lcrypto
-LD_LIBRARY_PATH=%{buildroot}%{_libdir} ./showciphers
+# LD_LIBRARY_PATH=%%{buildroot}%%{_libdir} ./showciphers
+LD_PRELOAD="%{buildroot}%{_libdir}/libssl.so.3:%{buildroot}%{_libdir}/libcrypto.so.3" ./showciphers
 %endif
 
 %install
@@ -138,7 +170,7 @@ for lib in %{buildroot}%{_libdir}/*.so.%{version} ; do
 done
 
 # Remove static libraries
-rm -f %{buildroot}%{_libdir}/lib*.a
+rm -f %{buildroot}%{_libdir}/*.a
 
 # Remove the cnf.dist
 rm -f %{buildroot}%{ssletcdir}/openssl.cnf.dist
@@ -190,8 +222,10 @@ fi
 %{_libdir}/ossl-modules/legacy.so
 
 %files devel
-%doc NOTES*.md CONTRIBUTING.md HACKING.md AUTHORS.md ACKNOWLEDGEMENTS.md
+%doc CONTRIBUTING.md HACKING.md AUTHORS.md ACKNOWLEDGEMENTS.md
 %{_includedir}/%{_rname}/
 %{_includedir}/ssl
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
+%dir %{_libdir}/cmake
+%{_libdir}/cmake/OpenSSL

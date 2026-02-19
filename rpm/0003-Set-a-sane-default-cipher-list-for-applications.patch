@@ -11,20 +11,20 @@ This patch applies to applications using deprecated OpenSSL 1.1 API's
 and thous can be removed once those are gone.
 ---
  include/openssl/ssl.h.in                    |  5 +++++
- ssl/ssl_ciph.c                              | 10 ++++++++-
- test/recipes/99-test_suse_default_ciphers.t | 23 +++++++++++++++++++++
- 3 files changed, 37 insertions(+), 1 deletion(-)
+ ssl/ssl_ciph.c                              | 10 +++++++++-
+ test/recipes/99-test_suse_default_ciphers.t | 22 +++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 1 deletion(-)
  create mode 100644 test/recipes/99-test_suse_default_ciphers.t
 
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index 9f91039f8a121c3324dee7801ed49a2bd51e5534..f49b4b700e4a42235d297e5af5a080fd30cbf1b0 100644
+index bdcc68529b..f919e3ced7 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
-@@ -194,6 +194,11 @@ extern "C" {
+@@ -196,6 +196,11 @@ extern "C" {
   */
- # ifndef OPENSSL_NO_DEPRECATED_3_0
- #  define SSL_DEFAULT_CIPHER_LIST "ALL:!COMPLEMENTOFDEFAULT:!eNULL"
-+#  define SSL_DEFAULT_SUSE_CIPHER_LIST "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:"\
+ #ifndef OPENSSL_NO_DEPRECATED_3_0
+ #define SSL_DEFAULT_CIPHER_LIST "ALL:!COMPLEMENTOFDEFAULT:!eNULL"
++#define SSL_DEFAULT_SUSE_CIPHER_LIST "ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:"\
 +    "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-SHA256:"\
 +    "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:"\
 +    "DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-CAMELLIA256-SHA:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-RSA-CAMELLIA128-SHA:"\
@@ -33,10 +33,10 @@ index 9f91039f8a121c3324dee7801ed49a2bd51e5534..f49b4b700e4a42235d297e5af5a080fd
   * This is the default set of TLSv1.3 ciphersuites
   * DEPRECATED IN 3.0.0, in favor of OSSL_default_ciphersuites()
 diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 8360991ce419a03c6dc59d6dbb54bed7b7d577ee..80a7da3d0836c825d6c1c2f47fb9a19ecac54141 100644
+index 7dccec6260..3b14d980b8 100644
 --- a/ssl/ssl_ciph.c
 +++ b/ssl/ssl_ciph.c
-@@ -1623,7 +1623,15 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1572,7 +1572,15 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       */
      ok = 1;
      rule_p = rule_str;
@@ -51,14 +51,14 @@ index 8360991ce419a03c6dc59d6dbb54bed7b7d577ee..80a7da3d0836c825d6c1c2f47fb9a19e
 +    }
 +    else if (HAS_PREFIX(rule_str, "DEFAULT")) {
          ok = ssl_cipher_process_rulestr(OSSL_default_cipher_list(),
-                                         &head, &tail, ca_list, c);
+             &head, &tail, ca_list, c);
          rule_p += 7;
 diff --git a/test/recipes/99-test_suse_default_ciphers.t b/test/recipes/99-test_suse_default_ciphers.t
 new file mode 100644
-index 0000000000000000000000000000000000000000..d7a687452f0e6768d9b6aeb3c3dcd764e9d75f7e
+index 0000000000..22b2213c41
 --- /dev/null
 +++ b/test/recipes/99-test_suse_default_ciphers.t
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,22 @@
 +#! /usr/bin/env perl
 +
 +use strict;
@@ -81,4 +81,3 @@ index 0000000000000000000000000000000000000000..d7a687452f0e6768d9b6aeb3c3dcd764
 +  ok(grep(/(TLSv1.3)/, run(app(["openssl", "ciphers", "-tls1_3", "-s", "-v", $cipherlist]), capture => 1)),
 +         "$cipherlist should contain TLSv1.3 ciphers\n");
 +}
-+
