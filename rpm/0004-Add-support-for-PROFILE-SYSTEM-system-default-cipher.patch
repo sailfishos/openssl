@@ -1,7 +1,7 @@
-From 736d709ec194b3a763e004696df22792c62a11fc Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Tomas Mraz <tmraz@fedoraproject.org>
 Date: Thu, 24 Sep 2020 10:16:46 +0200
-Subject: Add support for PROFILE=SYSTEM system default cipherlist
+Subject: [PATCH] Add support for PROFILE=SYSTEM system default cipherlist
 
 (was openssl-1.1.1-system-cipherlist.patch)
 ---
@@ -13,13 +13,13 @@ Subject: Add support for PROFILE=SYSTEM system default cipherlist
  ssl/ssl_lib.c                     |  4 +-
  test/cipherlist_test.c            |  2 +
  util/libcrypto.num                |  1 +
- 8 files changed, 110 insertions(+), 14 deletions(-)
+ 9 files changed, 121 insertions(+), 14 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
-index 78be4a3199..ae2a66a876 100644
+index 5bf397eba0..60feb2db4e 100644
 --- a/Configurations/unix-Makefile.tmpl
 +++ b/Configurations/unix-Makefile.tmpl
-@@ -355,6 +355,10 @@ MANDIR=$(INSTALLTOP)/share/man
+@@ -356,6 +356,10 @@ MANDIR=$(INSTALLTOP)/share/man
  DOCDIR=$(INSTALLTOP)/share/doc/$(BASENAME)
  HTMLDIR=$(DOCDIR)/html
  
@@ -30,7 +30,7 @@ index 78be4a3199..ae2a66a876 100644
  # MANSUFFIX is for the benefit of anyone who may want to have a suffix
  # appended after the manpage file section number.  "ssl" is popular,
  # resulting in files such as config.5ssl rather than config.5.
-@@ -378,6 +382,7 @@ CC=$(CROSS_COMPILE){- $config{CC} -}
+@@ -379,6 +383,7 @@ CC=$(CROSS_COMPILE){- $config{CC} -}
  CXX={- $config{CXX} ? "\$(CROSS_COMPILE)$config{CXX}" : '' -}
  CPPFLAGS={- our $cppflags1 = join(" ",
                                    (map { "-D".$_} @{$config{CPPDEFINES}}),
@@ -111,10 +111,10 @@ index 499585438a..035c6aa81d 100755
 # ####################################################################
 # [ ca ]
 diff --git a/doc/man1/openssl-ciphers.pod.in b/doc/man1/openssl-ciphers.pod.in
-index 69195bcdcb..a6e0ede570 100644
+index e1f9845cee..2496d011aa 100644
 --- a/doc/man1/openssl-ciphers.pod.in
 +++ b/doc/man1/openssl-ciphers.pod.in
-@@ -189,6 +189,15 @@ As of OpenSSL 1.0.0, the B<ALL> cipher suites are sensibly ordered by default.
+@@ -190,6 +190,15 @@ As of OpenSSL 1.0.0, the B<ALL> cipher suites are sensibly ordered by default.
  
  The cipher suites not enabled by B<ALL>, currently B<eNULL>.
  
@@ -303,7 +303,7 @@ index 3b14d980b8..1ec26c4346 100644
  
  char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index ac77faa677..677b05ba64 100644
+index 05b0209a76..728aa99b00 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -678,7 +678,7 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
@@ -315,7 +315,7 @@ index ac77faa677..677b05ba64 100644
      if ((sk == NULL) || (sk_SSL_CIPHER_num(sk) <= 0)) {
          ERR_raise(ERR_LIB_SSL, SSL_R_SSL_LIBRARY_HAS_NO_CIPHERS);
          return 0;
-@@ -4102,7 +4102,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
+@@ -4100,7 +4100,7 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
      if (!ssl_create_cipher_list(ret,
              ret->tls13_ciphersuites,
              &ret->cipher_list, &ret->cipher_list_by_id,

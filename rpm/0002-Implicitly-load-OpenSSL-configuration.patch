@@ -14,10 +14,10 @@ are recompiled, see OPENSSL_config(3).
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/exporters/pkg-config/libcrypto.pc.in b/exporters/pkg-config/libcrypto.pc.in
-index 3d56e97418..328627d41e 100644
+index eb6adffa91..0a811b5f42 100644
 --- a/exporters/pkg-config/libcrypto.pc.in
 +++ b/exporters/pkg-config/libcrypto.pc.in
-@@ -19,7 +19,7 @@ Description: OpenSSL cryptography library
+@@ -20,7 +20,7 @@ Description: OpenSSL cryptography library
  Version: {- $OpenSSL::safe::installdata::VERSION -}
  Libs: -L${libdir} -lcrypto
  Libs.private: {- join(' ', @OpenSSL::safe::installdata::LDLIBS) -}
@@ -27,10 +27,10 @@ index 3d56e97418..328627d41e 100644
                $OUT = '';
                $OUT .= ' -I${prefix}/' . $_ . ' '
 diff --git a/exporters/pkg-config/libssl.pc.in b/exporters/pkg-config/libssl.pc.in
-index 162db65c99..d92d79d913 100644
+index 53228dde4a..322d7fa652 100644
 --- a/exporters/pkg-config/libssl.pc.in
 +++ b/exporters/pkg-config/libssl.pc.in
-@@ -17,7 +17,7 @@ Description: Secure Sockets Layer and cryptography libraries
+@@ -18,7 +18,7 @@ Description: Secure Sockets Layer and cryptography libraries
  Version: {- $OpenSSL::safe::installdata::VERSION -}
  Requires.private: libcrypto
  Libs: -L${libdir} -lssl
