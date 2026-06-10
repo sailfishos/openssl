@@ -17,7 +17,7 @@ and thous can be removed once those are gone.
  create mode 100644 test/recipes/99-test_suse_default_ciphers.t
 
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index bdcc68529b..f919e3ced7 100644
+index e684f7c429..d413526dcd 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
 @@ -196,6 +196,11 @@ extern "C" {
@@ -33,10 +33,10 @@ index bdcc68529b..f919e3ced7 100644
   * This is the default set of TLSv1.3 ciphersuites
   * DEPRECATED IN 3.0.0, in favor of OSSL_default_ciphersuites()
 diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 7dccec6260..3b14d980b8 100644
+index fd2c4b0833..e16e21b426 100644
 --- a/ssl/ssl_ciph.c
 +++ b/ssl/ssl_ciph.c
-@@ -1572,7 +1572,15 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1576,7 +1576,15 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       */
      ok = 1;
      rule_p = rule_str;
