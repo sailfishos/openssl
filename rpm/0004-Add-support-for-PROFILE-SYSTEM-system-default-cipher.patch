@@ -13,7 +13,7 @@ Subject: [PATCH] Add support for PROFILE=SYSTEM system default cipherlist
  ssl/ssl_lib.c                     |  4 +-
  test/cipherlist_test.c            |  2 +
  util/libcrypto.num                |  1 +
- 9 files changed, 121 insertions(+), 14 deletions(-)
+ 8 files changed, 110 insertions(+), 14 deletions(-)
 
 diff --git a/Configurations/unix-Makefile.tmpl b/Configurations/unix-Makefile.tmpl
 index 5bf397eba0..60feb2db4e 100644
@@ -39,7 +39,7 @@ index 5bf397eba0..60feb2db4e 100644
                                    @{$config{CPPFLAGS}}) -}
  CFLAGS={- join(' ', @{$config{CFLAGS}}) -}
 diff --git a/Configure b/Configure
-index 499585438a..035c6aa81d 100755
+index 1b020faadb..16f4e590b9 100755
 --- a/Configure
 +++ b/Configure
 @@ -27,7 +27,7 @@ use OpenSSL::config;
@@ -62,7 +62,7 @@ index 499585438a..035c6aa81d 100755
  # --banner=".." Output specified text instead of default completion banner
  #
  # -w            Don't wait after showing a Configure warning
-@@ -409,6 +413,7 @@ $config{prefix}="";
+@@ -414,6 +418,7 @@ $config{prefix}="";
  $config{openssldir}="";
  $config{processor}="";
  $config{libdir}="";
@@ -70,7 +70,7 @@ index 499585438a..035c6aa81d 100755
  my $auto_threads=1;    # enable threads automatically? true by default
  my $default_ranlib;
  
-@@ -1105,6 +1110,10 @@ while (@argvcopy)
+@@ -1110,6 +1115,10 @@ while (@argvcopy)
                          die "FIPS key too long (64 bytes max)\n"
                             if length $1 > 64;
                          }
@@ -131,7 +131,7 @@ index e1f9845cee..2496d011aa 100644
  
  "High" encryption cipher suites. This currently means those with key lengths
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index f919e3ced7..2df4aa4ae6 100644
+index d413526dcd..5f6cad1034 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
 @@ -216,6 +216,11 @@ extern "C" {
@@ -147,10 +147,10 @@ index f919e3ced7..2df4aa4ae6 100644
  /* Used in SSL_set_shutdown()/SSL_get_shutdown(); */
  #define SSL_SENT_SHUTDOWN 1
 diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 3b14d980b8..1ec26c4346 100644
+index e16e21b426..a5fb8ea0f7 100644
 --- a/ssl/ssl_ciph.c
 +++ b/ssl/ssl_ciph.c
-@@ -1404,6 +1404,53 @@ int SSL_set_ciphersuites(SSL *s, const char *str)
+@@ -1408,6 +1408,53 @@ int SSL_set_ciphersuites(SSL *s, const char *str)
      return ret;
  }
  
@@ -204,7 +204,7 @@ index 3b14d980b8..1ec26c4346 100644
  STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
      STACK_OF(SSL_CIPHER) **cipher_list,
-@@ -1418,15 +1465,25 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1422,15 +1469,25 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      CIPHER_ORDER *co_list = NULL, *head = NULL, *tail = NULL, *curr;
      const SSL_CIPHER **ca_list = NULL;
      const SSL_METHOD *ssl_method = ctx->method;
@@ -232,7 +232,7 @@ index 3b14d980b8..1ec26c4346 100644
  
      /*
       * To reduce the work to do we only want to process the compiled
-@@ -1448,7 +1505,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1452,7 +1509,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      if (num_of_ciphers > 0) {
          co_list = OPENSSL_malloc(sizeof(*co_list) * num_of_ciphers);
          if (co_list == NULL)
@@ -241,7 +241,7 @@ index 3b14d980b8..1ec26c4346 100644
      }
  
      ssl_cipher_collect_ciphers(ssl_method, num_of_ciphers,
-@@ -1514,8 +1571,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1518,8 +1575,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       * in force within each class
       */
      if (!ssl_cipher_strength_sort(&head, &tail)) {
@@ -251,7 +251,7 @@ index 3b14d980b8..1ec26c4346 100644
      }
  
      /*
-@@ -1559,8 +1615,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1563,8 +1619,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      num_of_alias_max = num_of_ciphers + num_of_group_aliases + 1;
      ca_list = OPENSSL_malloc(sizeof(*ca_list) * num_of_alias_max);
      if (ca_list == NULL) {
@@ -261,7 +261,7 @@ index 3b14d980b8..1ec26c4346 100644
      }
      ssl_cipher_collect_aliases(ca_list, num_of_group_aliases,
          disabled_mkey, disabled_auth, disabled_enc,
-@@ -1594,8 +1649,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1598,8 +1653,7 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      OPENSSL_free(ca_list); /* Not needed anymore */
  
      if (!ok) { /* Rule processing failure */
@@ -271,7 +271,7 @@ index 3b14d980b8..1ec26c4346 100644
      }
  
      /*
-@@ -1603,10 +1657,13 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1607,10 +1661,13 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
       * if we cannot get one.
       */
      if ((cipherstack = sk_SSL_CIPHER_new_null()) == NULL) {
@@ -287,7 +287,7 @@ index 3b14d980b8..1ec26c4346 100644
      /* Add TLSv1.3 ciphers first - we always prefer those if possible */
      for (i = 0; i < sk_SSL_CIPHER_num(tls13_ciphersuites); i++) {
          const SSL_CIPHER *sslc = sk_SSL_CIPHER_value(tls13_ciphersuites, i);
-@@ -1661,6 +1718,14 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
+@@ -1665,6 +1722,14 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(SSL_CTX *ctx,
      *cipher_list = cipherstack;
  
      return cipherstack;
@@ -325,10 +325,10 @@ index 05b0209a76..728aa99b00 100644
          ERR_raise(ERR_LIB_SSL, SSL_R_LIBRARY_HAS_NO_CIPHERS);
          goto err;
 diff --git a/test/cipherlist_test.c b/test/cipherlist_test.c
-index 9874e6bad6..76b6befbad 100644
+index 921afe6234..be2c382f85 100644
 --- a/test/cipherlist_test.c
 +++ b/test/cipherlist_test.c
-@@ -260,7 +260,9 @@ end:
+@@ -312,7 +312,9 @@ end:
  
  int setup_tests(void)
  {
@@ -337,7 +337,7 @@ index 9874e6bad6..76b6befbad 100644
 +#endif
      ADD_TEST(test_default_cipherlist_explicit);
      ADD_TEST(test_default_cipherlist_clear);
-     ADD_TEST(test_stdname_cipherlist);
+ #ifndef OPENSSL_NO_TLS1_3
 diff --git a/util/libcrypto.num b/util/libcrypto.num
 index ceb4948839..a968fd51d2 100644
 --- a/util/libcrypto.num
