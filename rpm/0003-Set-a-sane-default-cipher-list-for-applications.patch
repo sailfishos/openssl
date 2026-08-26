@@ -17,7 +17,7 @@ and thous can be removed once those are gone.
  create mode 100644 test/recipes/99-test_suse_default_ciphers.t
 
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index e684f7c429..d413526dcd 100644
+index 90be33cb4f..6305ef9b18 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
 @@ -196,6 +196,11 @@ extern "C" {

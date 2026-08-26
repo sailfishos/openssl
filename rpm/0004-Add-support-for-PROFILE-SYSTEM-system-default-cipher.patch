@@ -131,7 +131,7 @@ index e1f9845cee..2496d011aa 100644
  
  "High" encryption cipher suites. This currently means those with key lengths
 diff --git a/include/openssl/ssl.h.in b/include/openssl/ssl.h.in
-index d413526dcd..5f6cad1034 100644
+index 6305ef9b18..cce3229ac9 100644
 --- a/include/openssl/ssl.h.in
 +++ b/include/openssl/ssl.h.in
 @@ -216,6 +216,11 @@ extern "C" {
@@ -303,7 +303,7 @@ index e16e21b426..a5fb8ea0f7 100644
  
  char *SSL_CIPHER_description(const SSL_CIPHER *cipher, char *buf, int len)
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index 05b0209a76..728aa99b00 100644
+index ba494f5fc0..e8207e1ee9 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -678,7 +678,7 @@ int SSL_CTX_set_ssl_version(SSL_CTX *ctx, const SSL_METHOD *meth)
