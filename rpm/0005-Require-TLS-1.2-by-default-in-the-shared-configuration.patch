@@ -1,13 +1,13 @@
 From: Andrew Branson <andrew.branson@jolla.com>
-Subject: [PATCH] Require TLS 1.2 by default in the shared configuration
+Subject: [PATCH] Require TLS and DTLS 1.2 by default in the shared configuration
 
-Apply the TLS minimum through system_default so both OpenSSL 3 and the
+Apply the TLS and DTLS minimums through system_default so OpenSSL 3 and the
 OpenSSL 1.1 compatibility library use it when loading the system config.
-Applications can still explicitly override the configured minimum.
+Applications can still explicitly override the configured minimums.
 
 --- a/apps/openssl.cnf
 +++ b/apps/openssl.cnf
-@@ -51,7 +51,14 @@
+@@ -51,7 +51,15 @@
  # .include fipsmodule.cnf
 
  [openssl_init]
@@ -18,7 +18,8 @@ Applications can still explicitly override the configured minimum.
 +system_default = system_default_sect
 +
 +[system_default_sect]
-+MinProtocol = TLSv1.2
++TLS.MinProtocol = TLSv1.2
++DTLS.MinProtocol = DTLSv1.2
 
  # List of providers to load
  [provider_sect]
