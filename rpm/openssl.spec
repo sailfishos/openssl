@@ -20,6 +20,7 @@ Patch0003:      0003-Set-a-sane-default-cipher-list-for-applications.patch
 # Note: changes to apps/openssl.cnf are disabled because
 #       SFOS doesn't yet support crypto policies.
 Patch0004:      0004-Add-support-for-PROFILE-SYSTEM-system-default-cipher.patch
+Patch0005:      0005-Require-TLS-1.2-by-default-in-the-shared-configuration.patch
 
 BuildRequires:  pkgconfig
 BuildRequires:  perl(Digest::SHA)
